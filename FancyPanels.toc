@@ -1,0 +1,35 @@
+## Interface: 40400
+## Author: TheBoringDad
+## Version: 0.5
+## Title: Modern Talents
+## Notes: An addon for guilds
+## SavedVariables: FancyPanelsAccount
+## SavedVariablesPerCharacter: FancyPanelsCharacter
+## Dependencies: TbdWidgets, Blizzard_TalentUI
+
+## X-Curse-Project-ID: 1644449
+
+Libs\LibStub\LibStub.lua
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+Libs\LibDbIcon-1.0\LibDbIcon-1.0.lua
+Libs\ChatThrottleLib.lua
+Libs\json.lua
+Libs\LibDeflate\LibDeflate.lua
+Libs\AceComm-3.0\AceComm-3.0.xml
+Libs\LibSerialize\lib.xml
+
+SavedVariables.lua
+
+Data.lua
+Constants.lua
+Callbacks.lua
+Util.lua
+
+PaperDollFuncs_TBC.lua [AllowLoadGameType tbc]
+
+Templates.lua
+Templates.xml
+
+FancyPanels.lua
+FancyPanels.xml
