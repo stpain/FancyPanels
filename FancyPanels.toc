@@ -1,8 +1,8 @@
-## Interface: 40400
+## Interface: 20505
 ## Author: TheBoringDad
-## Version: 0.5
-## Title: Modern Talents
-## Notes: An addon for guilds
+## Version: 0.1
+## Title: Fancy Panels
+## Notes: Fancy Panels for your Classic gaming.
 ## SavedVariables: FancyPanelsAccount
 ## SavedVariablesPerCharacter: FancyPanelsCharacter
 ## Dependencies: TbdWidgets, Blizzard_TalentUI

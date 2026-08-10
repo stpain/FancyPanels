@@ -119,23 +119,13 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
                         <Texture file="Interface/AddOns/FancyPanels/Media/Talents/Talents.png">
                             <TexCoords left="0.00048828125" right="0.78759765625" top="0.0009765625" bottom="0.0810546875"/>
                             <Size y="70"/>
-                            <!-- <Color r="0.172" g="0.170" b="0.174"/> -->
                             <Anchors>
                                 <Anchor point="BOTTOMLEFT"/>
                                 <Anchor point="BOTTOMRIGHT"/>
                             </Anchors>
                         </Texture>
                     </Layer>
-                    <!-- <Layer level="ARTWORK">
-                        <Texture parentKey="divider" file="Interface/AddOns/FancyPanels/Media/Talents/Specialization.png">
-                            <TexCoords left="0.982421875" right="0.98583984375" top="0.00048828125" bottom="0.41845703125"/>
-                            <Size x="7"/>
-                            <Anchors>
-                                <Anchor point="TOP" x="60" y="0"/>
-                                <Anchor point="BOTTOM" x="60" y="70"/>
-                            </Anchors>
-                        </Texture>
-                    </Layer> -->
+
                     <Layer level="OVERLAY">
                         <FontString parentKey="importInfo" inherits="GameFontNormalLarge">
                             <Size x="300" y="70"/>
@@ -147,28 +137,18 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
                 </Layers>
 
                 <Frames>
-                    <!-- <Frame parentKey="helptip" useParentLevel="true" frameStrata="DIALOG" inherits="TBDHelpTipTemplate_NoArrow">
-                        <Size x="480" y="40"/>
-                        <Anchors>
-                            <Anchor point="TOPLEFT" x="60" y="-35"/>
-                        </Anchors>
-                    </Frame> -->
 
-                    <!-- <Button parentKey="talentLoadoutDropdown" inherits="TBDDropDownTemplate">
+                    <Button parentKey="talentLoadoutDropdown" enableMouse="true" hidden="true">
                         <Size x="180" y="38"/>
                         <Anchors>
-                            <Anchor point="BOTTOMLEFT" x="40" y="22"/>
+                            <Anchor point="BOTTOMLEFT" x="40" y="15"/>
                         </Anchors>
-                    </Button> -->
+                        <NormalTexture atlas="charactercreate-customize-dropdownbox"/>
+                        <PushedTexture atlas="charactercreate-customize-dropdownbox-open"/>
+                        <HighlightTexture atlas="charactercreate-customize-dropdownbox-hover"/>
+                    </Button>
 
-                    <Frame parentKey="talentLoadoutDropdown" name="$parentTalentLoadoutDropdown" inherits="UIDropDownMenuTemplate" enableMouse="true">
-                        <Size x="180" y="38"/>
-                        <Anchors>
-                            <Anchor point="BOTTOMLEFT" x="40" y="22"/>
-                        </Anchors>
-                    </Frame>
-
-                    <EditBox parentKey="talentImportExport" inherits="TBDInputBoxTemplate">
+                    <EditBox parentKey="talentImportExport" inherits="TBDInputBoxTemplate" hidden="true">
                         <Size x="250" y="20"/>
                         <Anchors>
                             <Anchor point="LEFT" relativeKey="$parent.talentLoadoutDropdown" relativePoint="RIGHT" x="10" y="0"/>
@@ -177,76 +157,6 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
                             <KeyValue key="labelText" value="Import/Export"/>
                         </KeyValues>
                     </EditBox>
-
-                    <Frame parentKey="talentRecorderParent" hidden="true">
-                        <Size x="310" y="40"/>
-                        <Anchors>
-                            <Anchor point="BOTTOM" relativePoint="BOTTOM" x="70" y="14"/>
-                        </Anchors>
-                        <Animations>
-                            <AnimationGroup parentKey="recordingAnim" looping="REPEAT">
-                                <Alpha childKey="highlight" duration="0.45" fromAlpha="0.1" toAlpha="0.9"/>
-                                <Alpha startDelay="0.45" childKey="highlight" duration="0.45" fromAlpha="0.9" toAlpha="0.1"/>
-                            </AnimationGroup>
-                        </Animations>
-                        <Layers>
-                            <Layer level="BACKGROUND" textureSubLevel="-1">
-                                <Texture atlas="ClickCastList-ButtonBackground"/>
-                            </Layer>
-                            <Layer level="BACKGROUND">
-                                <Texture atlas="ClickCastList-ButtonNew"/>
-                            </Layer>
-                            <Layer level="OVERLAY">
-                                <Texture parentKey="highlight" atlas="ReportList-ButtonSelect" alpha="0">
-                                    <Anchors>
-                                        <Anchor point="TOPLEFT" x="-4" y="4"/>
-                                        <Anchor point="BOTTOMRIGHT" x="4" y="-4"/>
-                                    </Anchors>
-                                </Texture>
-                                <FontString parentKey="text" inherits="GameFontNormal">
-                                    <Anchors>
-                                        <Anchor point="TOPLEFT" x="80" y="-2"/>
-                                        <Anchor point="BOTTOMRIGHT" x="-80" y="2"/>
-                                    </Anchors>
-                                </FontString>
-                            </Layer>
-                        </Layers>
-
-                        <Frames>
-                            <Button parentKey="record" parentArray="controls">
-                                <Size x="32" y="32"/>
-                                <Anchors>
-                                    <Anchor point="LEFT" x="4" y="0"/>
-                                </Anchors>
-                                <NormalTexture atlas="common-icon-forwardarrow"/>
-                                <HighlightTexture atlas="communities-create-avatar-border-hover"/>
-                            </Button>
-                            <Button parentKey="restart" parentArray="controls">
-                                <Size x="32" y="32"/>
-                                <Anchors>
-                                    <Anchor point="LEFT" x="40" y="0"/>
-                                </Anchors>
-                                <NormalTexture atlas="common-icon-undo" />
-                                <HighlightTexture atlas="communities-create-avatar-border-hover"/>
-                            </Button>
-                            <Button parentKey="confirm" parentArray="controls">
-                                <Size x="32" y="32"/>
-                                <Anchors>
-                                    <Anchor point="RIGHT" x="-40" y="0"/>
-                                </Anchors>
-                                <NormalTexture atlas="common-icon-checkmark" />
-                                <HighlightTexture atlas="communities-create-avatar-border-hover"/>
-                            </Button>
-                            <Button parentKey="cancel" parentArray="controls">
-                                <Size x="32" y="32"/>
-                                <Anchors>
-                                    <Anchor point="RIGHT" x="-4" y="0"/>
-                                </Anchors>
-                                <NormalTexture atlas="common-icon-redx" />
-                                <HighlightTexture atlas="communities-create-avatar-border-hover"/>
-                            </Button>
-                        </Frames>
-                    </Frame>
 
                     <Frame parentKey="spec1" inherits="FancyPanelsCircleButtonTemplate">
                         <Size x="44" y="44"/>
@@ -279,7 +189,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
                         </Anchors>
                     </Frame> -->
 
-                    <Button parentKey="learnTalents" inherits="UIPanelButtonTemplate" text="LEARN">
+                    <Button parentKey="learnTalents" inherits="UIPanelButtonTemplate" text="LEARN" hidden="true">
                         <Size x="120" y="22"/>
                         <Anchors>
                             <Anchor point="BOTTOMRIGHT" x="-40" y="36"/>
@@ -291,50 +201,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
                         </Scripts>
                     </Button>
 
-                    <Frame name="FancyPanelsFrameLearnButtonTutorial" inherits="GlowBoxTemplate" enableMouse="true" hidden="true">
-                        <Size x="220" y="100"/>
-                        <Anchors>
-                            <Anchor point="BOTTOM" relativeKey="$parent.learnTalents" relativePoint="TOPRIGHT" x="-40" y="17"/>
-                        </Anchors>
-                        <Layers>
-                            <Layer level="OVERLAY">
-                                <FontString name="FancyPanelsFrameLearnButtonTutorialText" inherits="GameFontHighlightLeft" justifyV="TOP" text="TALENT_TREE_PREVIEW_TUTORIAL" >
-                                    <Size x="188" y="0"/>
-                                    <Anchors>
-                                        <Anchor point="TOPLEFT" x="16" y="-24"/>
-                                    </Anchors>
-                                </FontString>
-                            </Layer>
-                        </Layers>
-                        <Frames>
-                            <Button name="FancyPanelsFrameLearnButtonTutorialCloseButton" inherits="UIPanelCloseButton">
-                                <Anchors>
-                                    <Anchor point="TOPRIGHT" x="6" y="6"/>
-                                </Anchors>
-                                <Scripts>
-                                    <OnClick>
-                                        FancyPanelsFrameLearnButtonTutorial:Hide();
-                                    </OnClick>
-                                </Scripts>
-                            </Button>
-                            <Frame name="FancyPanelsFrameLearnButtonTutorialArrow" inherits="GlowBoxArrowTemplate">
-                                <Anchors>
-                                    <Anchor point="TOP" relativePoint="BOTTOM" y="4"/>
-                                </Anchors>
-                            </Frame>
-                        </Frames>
-                        <Scripts>
-                            <OnLoad>
-                                self:SetFrameLevel(self:GetParent():GetFrameLevel()+8);
-                                FancyPanelsFrameLearnButtonTutorialText:SetSpacing(4);
-                            </OnLoad>
-                            <OnShow>
-                                self:SetHeight(FancyPanelsFrameLearnButtonTutorialText:GetHeight()+42);
-                            </OnShow>
-                        </Scripts>
-                    </Frame>
-
-                    <Button parentKey="resetTalents" inherits="UIPanelButtonTemplate" text="RESET">
+                    <Button parentKey="resetTalents" inherits="UIPanelButtonTemplate" text="RESET" hidden="true">
                         <Size x="120" y="22"/>
                         <Anchors>
                             <Anchor point="BOTTOMRIGHT" x="-40" y="10"/>
@@ -345,6 +212,27 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
                             </OnLeave>
                         </Scripts>
                     </Button>
+
+                    <CheckButton parentKey="togglePreviewTalents" inherits="MinimalCheckboxArtTemplate">
+                        <Size x="32" y="32"/>
+                        <Anchors>
+                            <Anchor point="BOTTOMRIGHT" x="-20" y="86"/>
+                        </Anchors>
+                        <Scripts>
+                            <OnLeave>
+                                GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
+                            </OnLeave>
+                        </Scripts>
+                        <Layers>
+                            <Layer level="OVERLAY">
+                                <FontString parentKey="Text" inherits="GameFontWhite" justifyH="RIGHT" text="PREVIEW_TALENT_CHANGES">
+                                    <Anchors>
+                                        <Anchor point="RIGHT" relativePoint="LEFT" x="-4"/>
+                                    </Anchors>
+                                </FontString>
+                            </Layer>
+                        </Layers>
+                    </CheckButton>
 
                     <Frame parentKey="petParent" hidden="true">
                         <Anchors>
@@ -534,7 +422,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
 
                 <Frames>
 
-                    <CheckButton parentKey="toggleClickToCast" inherits="MinimalCheckboxArtTemplate">
+                    <CheckButton parentKey="toggleClickToCast" inherits="MinimalCheckboxArtTemplate" hidden="true">
                         <Anchors>
                             <Anchor point="TOPRIGHT" x="-40" y="-16"/>
                         </Anchors>

@@ -194,7 +194,6 @@ function FancyPanelsMixin:OnLoad()
     self.talentTreesParent.spec1:SetScript("OnMouseDown", function()
         local activeTalentGroup = C_SpecializationInfo.GetActiveSpecGroup(false, false)
         if activeTalentGroup ~= 1 then
-            --_G["PlayerSpecTab1"]:Click()
             C_SpecializationInfo.SetActiveSpecGroup(1)
         end
     end)
@@ -205,7 +204,6 @@ function FancyPanelsMixin:OnLoad()
     self.talentTreesParent.spec2:SetScript("OnMouseDown", function()
         local activeTalentGroup = C_SpecializationInfo.GetActiveSpecGroup(false, false)
         if activeTalentGroup ~= 2 then
-            --_G["PlayerSpecTab2"]:Click()
             C_SpecializationInfo.SetActiveSpecGroup(2)
         end
     end)
@@ -215,10 +213,9 @@ function FancyPanelsMixin:OnLoad()
         -- GameTooltip:SetText(TALENT_TOOLTIP_RESETTALENTGROUP);
     end)
     self.talentTreesParent.resetTalents:SetScript("OnClick", function()
-        -- PlayerTalentFrameResetButton_OnClick()
-        -- self:UpdateSpecializationTab()
-        -- self:UpdateTalentTrees()
-        -- self:UpdatePetTalentTree()
+        local isInspect, isPet = false, false;
+        local talentGroup = C_SpecializationInfo.GetActiveSpecGroup(false, isPet);
+        ResetGroupPreviewTalentPoints(isPet, talentGroup);
     end)
 
     self.talentTreesParent.learnTalents:SetScript("OnEnter", function()
@@ -226,9 +223,13 @@ function FancyPanelsMixin:OnLoad()
         -- GameTooltip:SetText(TALENT_TOOLTIP_LEARNTALENTGROUP);
     end)
     self.talentTreesParent.learnTalents:SetScript("OnClick", function()
-        --PlayerTalentFrameLearnButton_OnClick()
+        StaticPopup_Show("FANCY_PANELS_CONFIRM_LEARN_PREVIEW_TALENTS", nil, nil, { isPet = false, });
     end)
 
+    self.talentTreesParent.togglePreviewTalents:SetScript("OnClick", function(cb)
+        local isChecked = cb:GetChecked();
+        self:TogglePreviewTalentPoints(isChecked, true)
+    end)
 
     addon.CallbackRegistry:RegisterCallback(addon.Callbacks.CharacterEquipmentSet_OnDeleted, self.CharacterEquipmentSet_OnDeleted, self);
     addon.CallbackRegistry:RegisterCallback(addon.Callbacks.CharacterEquipmentSet_OnEdit, self.CharacterEquipmentSet_OnEdit, self);
@@ -249,7 +250,9 @@ function FancyPanelsMixin:OnEvent(event, ...)
 end
 
 function FancyPanelsMixin:OnShow()
-
+    local isPreviewTalentsEnabled = C_CVar.GetCVar("previewTalentsOption");
+    self.talentTreesParent.togglePreviewTalents:SetChecked(isPreviewTalentsEnabled)
+    self:TogglePreviewTalentPoints(isPreviewTalentsEnabled);
 end
 
 
@@ -265,9 +268,8 @@ end
 
 function FancyPanelsMixin:CHARACTER_POINTS_CHANGED(...)
     local pointsChanged = ...;
-
-    print("== CHARACTER_POINTS_CHANGED ==");
-    DevTools_Dump({...});
+    self:UpdateSpecializationInfo();
+    self:UpdateTalentTrees();
 end
 
 function FancyPanelsMixin:PLAYER_ENTERING_WORLD(...)
@@ -288,6 +290,7 @@ function FancyPanelsMixin:PLAYER_ENTERING_WORLD(...)
         self:Character_InitStats();
         self:InitEquipmentControls();
         self:UpdateOutfitList();
+
     end
 end
 
@@ -304,41 +307,26 @@ end
 function FancyPanelsMixin:PLAYER_TALENT_UPDATE(...)
     self:UpdateSpecializationInfo();
     self:UpdateTalentTrees();
-
-    print("== PLAYER_TALENT_UPDATE ==");
-    DevTools_Dump({...});
 end
 
 function FancyPanelsMixin:PREVIEW_PET_TALENT_POINTS_CHANGED(...)
-
     -- local talentIndex, tabID, activeTalentGroup, delta = ...;
-
-    -- --print(talentIndex, tabID, delta)
-
-    -- addon.CallbackRegistry:TriggerEvent(addon.Callbacks.Talent_OnPreviewPointsChanged, talentIndex, tabID, delta)
-
-    -- self:UpdatePetTalentTree()
 end
 
 function FancyPanelsMixin:PREVIEW_TALENT_POINTS_CHANGED(...)
     
     local talentIndex, tabID, activeTalentGroup, delta = ...;
 
-    -- addon.CallbackRegistry:TriggerEvent(addon.Callbacks.Talent_OnPreviewPointsChanged, talentIndex, tabID, delta)
-
-    -- self:UpdateTalentTrees()
-
-    --print(string.format("TalentIndex %s, TabID %s, SpecGroup %s, Delta %s", talentIndex, tabID, specGroup, delta))
-
-    print("== PREVIEW_TALENT_POINTS_CHANGED ==")
-    DevTools_Dump({...});
-
     local isInspect, isPet = false, false;
     --local specGroup = C_SpecializationInfo.GetActiveSpecGroup(isInspect, isPet)
     local id, name, description, icon, role, primaryStat, pointsSpent, background, previewPointsSpent, isUnlocked = C_SpecializationInfo.GetSpecializationInfo(tabID, isInspect, isPet, nil, nil, activeTalentGroup);
 
-    self:SetTalentInfoText(string.format("%d Points Available", GetNumTalentPoints() - previewPointsSpent))
-
+    local isPreviewTalentsEnabled = C_CVar.GetCVar("previewTalentsOption");
+    if (isPreviewTalentsEnabled == true) or (isPreviewTalentsEnabled == "1") then
+        self:SetTalentInfoText(string.format("%d Points Available", GetNumTalentPoints() - previewPointsSpent));
+    else
+        self:UpdateSpecializationInfo();
+    end
     self:UpdateTalentTrees();
 end
 
@@ -381,6 +369,26 @@ function FancyPanelsMixin:CreateMinimapButton()
     _G['LibDBIcon10_FancyPanelsMinimapButton']:SetScript("OnLeave", function(s)
         GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
     end)
+
+end
+
+function FancyPanelsMixin:TogglePreviewTalentPoints(enabled, setCvar)
+
+    --C_CVar.SetCVar("previewTalentsOption", enabled);
+    if (setCvar == true) then
+        SetCVar("previewTalentsOption", enabled)
+    end
+
+    self.talentTreesParent.learnTalents:SetShown(enabled);
+    self.talentTreesParent.resetTalents:SetShown(enabled);
+
+    self.talentTreesParent.spec1:ClearAllPoints();
+
+    if (enabled == true) or (enabled == "1") then
+        self.talentTreesParent.spec1:SetPoint("BOTTOMRIGHT", -255, 10);
+    else
+        self.talentTreesParent.spec1:SetPoint("BOTTOMRIGHT", -90, 10);
+    end
 
 end
 
@@ -450,7 +458,8 @@ function FancyPanelsMixin:InitializeClass(classID)
             tree = i
         end
         
-        self.talentTreesParent["talentTab"..i].header:SetText(name)
+        local headerText = string.format("%s |cffFFD200%d", name, pointsSpent);
+        self.talentTreesParent["talentTab"..i].header:SetText(headerText);
 
         --hide any selected artwork/highlighting
         specPanel.specs[i]:SetSelected()
@@ -531,12 +540,24 @@ function FancyPanelsMixin:UpdateSpecializationInfo()
                 groupData[specGroup].tree = i;
             end
             groupData[specGroup].totalPoints = groupData[specGroup].totalPoints + pointsSpent;
+
+            if (groupData[specGroup].isActive == true) then
+                local headerText = string.format("%s |cffFFD200%d", name, pointsSpent);
+                self.talentTreesParent["talentTab"..i].header:SetText(headerText);
+            end
         end
     end
 
     --this clears old layoutInfo 
     for i = 1, NUM_SPECIALIZATIONS do
         self.specializationsParent.specs[i]:SetSelected()
+    end
+
+    if (groupData[activeSpecGroup].points > 0) then
+        self.specializationsParent.specs[groupData[activeSpecGroup].tree]:SetSelected(true)
+        local spec = self.classSpecInfo[groupData[activeSpecGroup].tree];
+        self.talentTreesParent.background:SetTexture(spec.backgroundFilePath)
+        self.talentTreesParent.background:SetTexCoord(spec.backgroundAtlas[1], spec.backgroundAtlas[2], spec.backgroundAtlas[3], spec.backgroundAtlas[4])
     end
 
     if (GetNumTalentGroups() == 2) then
@@ -546,28 +567,25 @@ function FancyPanelsMixin:UpdateSpecializationInfo()
         self.talentTreesParent.spec1.border:SetAtlas("charactercreate-ring-metallight")
         self.talentTreesParent.spec2.border:SetAtlas("charactercreate-ring-metallight")
 
-        if (groupData[activeSpecGroup].points > 0) then
-            self.specializationsParent.specs[groupData[activeSpecGroup].tree]:SetSelected(true)
-            local spec = self.classSpecInfo[groupData[activeSpecGroup].tree];
-            self.talentTreesParent.background:SetTexture(spec.backgroundFilePath)
-            self.talentTreesParent.background:SetTexCoord(spec.backgroundAtlas[1], spec.backgroundAtlas[2], spec.backgroundAtlas[3], spec.backgroundAtlas[4])
-        end
-
         if ( TalentUIUtil.IsSpecActive("spec1") ) then
             FancyPanelsPortrait:SetTexture(groupData[1].icon);
-            self.talentTreesParent.spec1.icon:SetTexture(groupData[1].icon)
             self.talentTreesParent.spec1.border:SetAtlas("charactercreate-ring-select")
         else
             FancyPanelsPortrait:SetTexture(groupData[2].icon);
-            self.talentTreesParent.spec2.icon:SetTexture(groupData[2].icon)
             self.talentTreesParent.spec2.border:SetAtlas("charactercreate-ring-select")
         end
+
+        self.talentTreesParent.spec1.icon:SetTexture(groupData[1].icon)
+        self.talentTreesParent.spec2.icon:SetTexture(groupData[2].icon)
+        
 
     else
         self.talentTreesParent.spec1:Hide();
         self.talentTreesParent.spec2:Hide();
 
     end
+
+    --DevTools_Dump({groupData})
 
     if (GetNumTalentPoints() - groupData[activeSpecGroup].totalPoints) > 0 then
         self:SetTalentInfoText(string.format("%d Points Available", GetNumTalentPoints() - groupData[activeSpecGroup].totalPoints))
@@ -983,6 +1001,183 @@ function FancyPanelsMixin:InitCharacterModel()
 
     self.character.model.background:SetAtlas(string.format("dressingroom-background-%s", classFile:lower()));
     --self.character.model.background:SetAtlas(string.format("transmog-background-race-%s", raceInfo:lower()));
+
+
+    --https://warcraft.wiki.gg/wiki/InventorySlotID
+
+    local function InitInvSlotButton(button, equipLoc, invSlotName, tooltipAnchor)
+
+        local invSlotId = GetInventorySlotInfo(invSlotName);
+        button.invSlotId = invSlotId;
+
+
+        button:RegisterEvent("UNIT_INVENTORY_CHANGED");
+        button:SetScript("OnEvent", function(b, event, ...)
+            if (event ~= "UNIT_INVENTORY_CHANGED") then
+                return;
+            end
+            local unit = ...;
+            if (unit ~= "player") then
+                return;
+            end
+
+            b.itemLink = GetInventoryItemLink(unit, b.invSlotId);
+            if b.itemLink then
+                local icon = select(5, C_Item.GetItemInfoInstant(b.itemLink));
+                b.icon:SetTexture(icon);
+            end
+
+        end)
+
+        --set icon on init
+        button.itemLink = GetInventoryItemLink("player", button.invSlotId);
+        if button.itemLink then
+            local icon = select(5, C_Item.GetItemInfoInstant(button.itemLink));
+            button.icon:SetTexture(icon);
+        end
+
+        button:SetScript("OnClick", function()
+            
+            local itemsForSlot = Util.GetContainerItemsForInvSlot(equipLoc);
+            if (#itemsForSlot > 0) then
+            
+                MenuUtil.CreateContextMenu(button, function(_, rootDescription)
+
+                    if type(equipLoc) == "table" then
+                        rootDescription:CreateTitle(_G[equipLoc[1]]);
+                    else
+                        rootDescription:CreateTitle(_G[equipLoc]);
+                    end
+
+                    rootDescription:CreateDivider()
+
+                    for _, link in ipairs(itemsForSlot) do
+                        local itemName = C_Item.GetItemNameByID(link)
+                        local itemButton = rootDescription:CreateButton(link, function()
+                        	if ( C_Item.IsEquippableItem(itemName) and not C_Item.IsEquippedItem(itemName) ) then
+			                    local slotID = GetInventorySlotInfo(invSlotName)
+                                C_Item.EquipItemByName(itemName, slotID);
+                                
+                                C_Timer.After(1, function()
+                                    self.character.model:SetUnit("player");
+                                end)
+                            end
+                        end)
+
+                        itemButton:SetTooltip(function()
+                            GameTooltip:SetHyperlink(link);
+                        end)
+                    end
+                end)
+
+            end
+        end)
+
+
+        button:SetScript("OnEnter", function(b)
+            if b.itemLink then
+                GameTooltip:SetOwner(b, tooltipAnchor);
+                GameTooltip:SetHyperlink(b.itemLink);
+                GameTooltip:Show();
+            end
+        end)
+    end
+
+
+    --[[
+        add slots here
+    ]]
+    local lastButton;
+    for k, invSlot in ipairs(addon.Constants.InvSlotLayouts.Left) do
+
+        local slotButton = CreateFrame("Button", nil, self.character.model, "FancyPanelCharacterInvSlotTemplate");
+        slotButton:SetFrameLevel(self.character.model:GetFrameLevel() + 1);
+        if (lastButton == nil) then
+            slotButton:SetPoint("TOPLEFT", 24, -140);
+        else
+            slotButton:SetPoint("TOP", lastButton, "BOTTOM", 0, -12);
+        end
+        lastButton = slotButton;
+
+        local info = addon.Constants.InventorySlots[k]
+        slotButton.backgroundIcon:SetTexture(info.icon);
+
+        InitInvSlotButton(slotButton, invSlot, info.slot, "TOPRIGHT");
+
+    end
+    lastButton = nil;
+    for k, invSlot in ipairs(addon.Constants.InvSlotLayouts.Right) do
+
+        local slotButton = CreateFrame("Button", nil, self.character.model, "FancyPanelCharacterInvSlotTemplate");
+        slotButton:SetFrameLevel(self.character.model:GetFrameLevel() + 1);
+        if (lastButton == nil) then
+            slotButton:SetPoint("TOPRIGHT", -24, -140);
+        else
+            slotButton:SetPoint("TOP", lastButton, "BOTTOM", 0, -12);
+        end
+        lastButton = slotButton;
+
+        local info = addon.Constants.InventorySlots[k+8]
+        slotButton.backgroundIcon:SetTexture(info.icon);
+
+        InitInvSlotButton(slotButton, invSlot, info.slot, "TOPLEFT");
+
+    end
+
+    local mainHandSlot = CreateFrame("Button", nil, self.character.model, "FancyPanelCharacterInvSlotTemplate");
+    mainHandSlot:SetFrameLevel(self.character.model:GetFrameLevel() + 1);
+    mainHandSlot:SetPoint("BOTTOMLEFT", 180, 60);
+    mainHandSlot.backgroundIcon:SetTexture(addon.Constants.InventorySlots[17].icon);
+
+    InitInvSlotButton(
+        mainHandSlot,
+        {
+            "INVTYPE_WEAPONMAINHAND",
+            "INVTYPE_WEAPON",
+            "INVTYPE_2HWEAPON",
+        },
+        addon.Constants.InventorySlots[17].slot,
+        "TOPLEFT"
+    );
+    
+    local offHandSlot = CreateFrame("Button", nil, self.character.model, "FancyPanelCharacterInvSlotTemplate");
+    offHandSlot:SetFrameLevel(self.character.model:GetFrameLevel() + 1);
+    offHandSlot:SetPoint("LEFT", mainHandSlot, "RIGHT", 12, 0);
+    offHandSlot.backgroundIcon:SetTexture(addon.Constants.InventorySlots[18].icon);
+
+    InitInvSlotButton(
+        offHandSlot,
+        {
+            "INVTYPE_WEAPONOFFHAND",
+            "INVTYPE_WEAPON",
+        },
+        addon.Constants.InventorySlots[18].slot,
+            "TOPLEFT"
+    );
+
+    local rangedSlot = CreateFrame("Button", nil, self.character.model, "FancyPanelCharacterInvSlotTemplate");
+    rangedSlot:SetFrameLevel(self.character.model:GetFrameLevel() + 1);
+    rangedSlot:SetPoint("LEFT", offHandSlot, "RIGHT", 12, 0);
+    rangedSlot.backgroundIcon:SetTexture(addon.Constants.InventorySlots[19].icon);
+
+    InitInvSlotButton(
+        rangedSlot,
+        {
+            "INVTYPE_RANGED",
+        },
+        addon.Constants.InventorySlots[19].slot,
+            "TOPLEFT"
+    );
+    
+    
+
+    -- local relicSlot = CreateFrame("Button", nil, self.character.model, "FancyPanelCharacterInvSlotTemplate");
+    -- relicSlot:SetFrameLevel(self.character.model:GetFrameLevel() + 1);
+    -- relicSlot:SetPoint("LEFT", rangedSlot, "RIGHT", 12, 0);
+    -- InitInvSlotButton(relicSlot, addon.Constants.InventorySlots[20].slot, "TOPLEFT");
+    -- relicSlot.backgroundIcon:SetTexture(addon.Constants.InventorySlots[20].icon);
+
+    --FancyPanelCharacterInvSlotTemplate
 end
 
 function FancyPanelsMixin:Character_InitStats()
@@ -1095,6 +1290,10 @@ end
 function FancyPanelsMixin:Character_ShowEquipment()
 
     self.character.tabContainer.equipment:Show();
+
+    if 1 == 1 then
+        return;
+    end
     
     --get the model position data for item slot
     local modelSetup = addon.modelRaceOffsets.NightElf.INVTYPE_SHOULDER;

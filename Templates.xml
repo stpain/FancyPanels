@@ -488,6 +488,41 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     </Button>
 
 
+    <Button name="FancyPanelCharacterInvSlotTemplate" virtual="true">
+        <Size x="44" y="44"/>
+        <Layers>
+            <Layer level="BACKGROUND">
+                <Texture parentKey="backgroundIcon">
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="5" y="-5"/>
+                        <Anchor point="BOTTOMRIGHT" x="-5" y="5"/>
+                    </Anchors>
+                </Texture>
+            </Layer>
+            <Layer level="ARTWORK">
+                <Texture parentKey="icon">
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="5" y="-5"/>
+                        <Anchor point="BOTTOMRIGHT" x="-5" y="5"/>
+                    </Anchors>
+                </Texture>
+            </Layer>
+            <Layer level="OVERLAY">
+                <Texture atlas="Relicforge-Slot-frame">
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="-5" y="5"/>
+                        <Anchor point="BOTTOMRIGHT" x="5" y="-5"/>
+                    </Anchors>
+                </Texture>
+            </Layer>
+        </Layers>
+        <Scripts>
+            <OnLeave>
+                GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
+            </OnLeave>
+        </Scripts>
+    </Button>
+
 
     <DressUpModel name="FancyPanelCharacterEquipmentModel" virtual="true">
         <Size x="160" y="240"/>

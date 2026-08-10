@@ -414,221 +414,29 @@ end
 
 
 
-local spellSchools = {
-    [2] = 'Holy',
-    [3] = 'Fire',
-    [4] = 'Nature',
-    [5] = 'Frost',
-    [6] = 'Shadow',
-    [7] = 'Arcane',
-}
-local statIDs = {
-    [1] = 'Strength',
-    [2] = 'Agility',
-    [3] = 'Stamina',
-    [4] = 'Intellect',
-    [5] = 'Spirit',
-}
-function Util.GetPaperDollStats()
+function Util.GetContainerItemsForInvSlot(equipLoc, invType, invSlotId)
 
-    --[[
-        the sub table keys (melee[this key]) should be capitalised as they are used in a locale lookup
-    ]]
-    local stats = {
-        attributes = {},
-        defence = {},
-        melee = {},
-        ranged = {},
-        spell = {},
-    }
+    local ret = {};
 
-    local numSkills = GetNumSkillLines();
-    local skillIndex = 0;
-    local currentHeader = nil;
+    if type(equipLoc) == "string" then
+        local x = {equipLoc};
+        equipLoc = x;
+    end
 
-    for i = 1, numSkills do
-        local skillName = select(1, GetSkillLineInfo(i));
-        local isHeader = select(2, GetSkillLineInfo(i));
-
-        if isHeader ~= nil and isHeader then
-            currentHeader = skillName;
-        else
-            if (currentHeader == "Weapon Skills" and skillName == 'Defense') then
-                skillIndex = i;
-                break;
+    for bag = 0, 4 do
+        for slot = 1, C_Container.GetContainerNumSlots(bag) do
+            local link = C_Container.GetContainerItemLink(bag, slot)
+            if link then
+                local _, _, _, _equipLoc, _, class = C_Item.GetItemInfoInstant(link);
+                if tContains(equipLoc, _equipLoc) then
+                    table.insert(ret, link);
+                end
             end
         end
     end
-
-    -- local baseDef, modDef;
-    -- if (skillIndex > 0) then
-    --     baseDef = select(4, GetSkillLineInfo(skillIndex));
-    --     modDef = select(6, GetSkillLineInfo(skillIndex));
-    -- else
-    --     baseDef, modDef = UnitDefense('player')
-    -- end
-
-    -- local posBuff = 0;
-    -- local negBuff = 0;
-    -- if ( modDef > 0 ) then
-    --     posBuff = modDef;
-    -- elseif ( modDef < 0 ) then
-    --     negBuff = modDef;
-    -- end
-    -- stats.defence.defence = {
-    --     base = Util.TrimNumber(baseDef),
-    --     mod = Util.TrimNumber(modDef),
-    -- }
-
-
-    local baseDef, modDef = UnitDefense('player')
-    stats.defence.Defence = (baseDef + modDef)
-
-    local baseArmor, effectiveArmor, armr, posBuff, negBuff = UnitArmor('player');
-    stats.defence.Armor = Util.TrimNumber(baseArmor)
-    stats.defence.Block = Util.TrimNumber(GetBlockChance());
-    stats.defence.Parry = Util.TrimNumber(GetParryChance());
-    stats.defence.ShieldBlock = Util.TrimNumber(GetShieldBlock());
-    stats.defence.Dodge = Util.TrimNumber(GetDodgeChance());
-
-    -- stats.defence.tooltips = {
-
-    -- }
-
-    --local expertise, offhandExpertise, rangedExpertise = GetExpertise();
-    --local base, casting = GetManaRegen();
-    stats.spell.SpellHit = 0 -- Util.TrimNumber(GetCombatRatingBonus(CR_HIT_SPELL) + GetSpellHitModifier());
-    stats.melee.MeleeHit = 0 --Util.TrimNumber(GetCombatRatingBonus(CR_HIT_MELEE) + GetHitModifier());
-    stats.ranged.RangedHit = 0 -- Util.TrimNumber(GetCombatRatingBonus(CR_HIT_RANGED));
-
-    stats.ranged.RangedCrit = Util.TrimNumber(GetRangedCritChance());
-    stats.melee.MeleeCrit = Util.TrimNumber(GetCritChance());
-
-    stats.spell.Haste = Util.TrimNumber(GetHaste());
-    stats.melee.Haste = Util.TrimNumber(GetMeleeHaste());
-    stats.ranged.Haste = Util.TrimNumber(GetRangedHaste());
-
-    local base, casting = GetManaRegen()
-    stats.spell.Mana = base and Util.TrimNumber(base*5) or 0;
-    stats.spell.ManaCombat = casting and Util.TrimNumber(casting*5) or 0;
-
-    local maxCrit, critSchool = 0, "-";
-    local maxDamage, dmgSchool = 0, "-";
-
-    stats.spell.tooltips = {
-        damage = {},
-        crit = {},
-    }
-
-    for id, school in pairs(spellSchools) do
-
-        local spellDamage = GetSpellBonusDamage(id)
-        if spellDamage > maxDamage then
-            maxDamage = spellDamage
-            dmgSchool = spellSchools[id]
-        end
-        local spellCrit = GetSpellCritChance(id)
-        if spellCrit > maxCrit then
-            maxCrit = spellCrit
-            critSchool = spellSchools[id]
-        end
-
-        table.insert(stats.spell.tooltips.damage, {
-            name = spellSchools[id],
-            val = Util.TrimNumber(spellDamage)
-        })
-        table.insert(stats.spell.tooltips.crit, {
-            name = spellSchools[id],
-            val = Util.TrimNumber(spellCrit)
-        })
-
-    end
-    stats.spell.SpellCrit = Util.TrimNumber(maxCrit)
-    stats.spell.SpellCritSchool = critSchool
-    stats.spell.SpellDamage = Util.TrimNumber(maxDamage)
-    stats.spell.SpellDamageSchool  = dmgSchool
-
-    stats.spell.HealingBonus = Util.TrimNumber(GetSpellBonusHealing());
-
-    local lowDmg, hiDmg, offlowDmg, offhiDmg, posBuff, negBuff, percentmod = UnitDamage("player");
-    local mainSpeed, offSpeed = UnitAttackSpeed("player");
-    local mlow = (lowDmg + posBuff + negBuff) * percentmod
-    local mhigh = (hiDmg + posBuff + negBuff) * percentmod
-    local olow = (offlowDmg + posBuff + negBuff) * percentmod
-    local ohigh = (offhiDmg + posBuff + negBuff) * percentmod
-    if mainSpeed < 1 then mainSpeed = 1 end
-    if mlow < 1 then mlow = 1 end
-    if mhigh < 1 then mhigh = 1 end
-    if olow < 1 then olow = 1 end
-    if ohigh < 1 then ohigh = 1 end
-
-    if offSpeed then
-        if offSpeed < 1 then 
-            offSpeed = 1
-        end
-        stats.melee.MeleeDmgOH = Util.TrimNumber((olow + ohigh) / 2.0)
-        stats.melee.MeleeDpsOH = Util.TrimNumber(((olow + ohigh) / 2.0) / offSpeed)
-    else
-        --offSpeed = 1
-        stats.melee.MeleeDmgOH = Util.TrimNumber(0)
-        stats.melee.MeleeDpsOH = Util.TrimNumber(0)
-    end
-    stats.melee.MeleeDmgMH = Util.TrimNumber((mlow + mhigh) / 2.0)
-    stats.melee.MeleeDpsMH = Util.TrimNumber(((mlow + mhigh) / 2.0) / mainSpeed)
-
-    local speed, lowDmg, hiDmg, posBuff, negBuff, percent = UnitRangedDamage("player");
-    local low = (lowDmg + posBuff + negBuff) * percent
-    local high = (hiDmg + posBuff + negBuff) * percent
-    if speed < 1 then speed = 1 end
-    if low < 1 then low = 1 end
-    if high < 1 then high = 1 end
-    local dmg = (low + high) / 2.0
-    stats.ranged.RangedDmg = Util.TrimNumber(dmg)
-    stats.ranged.RangedDps = Util.TrimNumber(dmg/speed)
-
-    local base, posBuff, negBuff = UnitAttackPower('player')
-    stats.melee.AttackPower = Util.TrimNumber(base + posBuff + negBuff)
-
-    for k, stat in ipairs(statIDs) do
-        local baseStat, effectiveStat, pos, neg = UnitStat("player", k);
-        table.insert(stats.attributes, {
-            id = k,
-            name = stat,
-            val = Util.TrimNumber(baseStat),
-        })
-    end
-
-    return stats;
+    
+    return ret;
 end
-
-local resistanceIDs = {
-    [0] = "Physical",
-    [1] = "Holy",
-    [2] = "Fire",
-    [3] = "Nature",
-    [4] = "Frost",
-    [5] = "Shadow",
-    [6] = "Arcane",
-}
-function Util.GetPlayerResistances()
-    local res = {}
-    for i = 0, 6 do
-        local base, total, bonus, minus = UnitResistance("player", i)
-
-        table.insert(res, {
-            name = resistanceIDs[i],
-            base = base,
-            total = total,
-            bonus = bonus,
-            minus = minus,
-        })
-
-    end
-    return res;
-end
-
-
-
 
 
 

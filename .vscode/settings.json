@@ -154,7 +154,8 @@
         "GEARSETS_POPUP_TEXT",
         "UPDATE",
         "CHANGE_MACRO_NAME_ICON",
-        "EQUIPMENT_SET_EDIT"
+        "EQUIPMENT_SET_EDIT",
+        "CONFIRM_LEARN_PREVIEW_TALENTS"
     ],
     "Lua.runtime.version": "Lua 5.1",
     "Lua.runtime.builtin": {
