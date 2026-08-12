@@ -1,4 +1,12 @@
+--[[
 
+    © 2026 Sam Pain. All Rights Reserved.
+    
+    No part of this work may be reproduced 
+    without the prior written permission 
+    of the author.
+
+]]
 
 local name, addon = ...;
 
@@ -41,14 +49,16 @@ function FancyPanelsSpellbookSpellItemMixin:OnLoad()
 	self.Name = self.TextContainer.Name;
 	self.SubName = self.TextContainer.SubName;
 
+    self.Button:RegisterForDrag("LeftButton")
+
     Util.ApplyAtlas(self.Backplate, "spellbookelements", "spellbook-item-backplate")
     Util.ApplyAtlas(self.Button.Border, "spellbookelements", "spellbook-item-iconframe")
     Util.ApplyAtlas(self.Button.IconHighlight, "interface/talentframe/talents", "talents-node-square-greenglow")
 
     addon.CallbackRegistry:RegisterCallback(addon.Callbacks.SpellbookClickToCast_OnToggle, self.SpellbookClickToCast_OnToggle, self)
 
-    self.Button:SetScript("OnMouseDown", function(_, hwButtonPressed)
-        if (self.captureEnabled == false) and self.spell and IsShiftKeyDown() then
+    self.Button:SetScript("OnDragStart", function(_, hwButtonPressed)
+        if (self.captureEnabled == false) and self.spell then
             PickupSpell(self.spell:GetSpellID());
         end
     end)
@@ -1799,4 +1809,72 @@ end
 function FancyPanelsOutfitListItemMixin:ResetDataBinding()
     self.label:SetText("");
     self.icon:SetTexture(nil);
+end
+
+
+
+
+
+FancyPanelCharacterInvSlotMixin = {};
+
+function FancyPanelCharacterInvSlotMixin:OnLoad()
+    
+end
+
+function FancyPanelCharacterInvSlotMixin:OnClick()
+    local itemsForSlot = Util.GetContainerItemsForInvSlot(self.equipLoc);
+    if (#itemsForSlot > 0) then
+        MenuUtil.CreateContextMenu(self, function(_, rootDescription)
+            if type(self.equipLoc) == "table" then
+                rootDescription:CreateTitle(_G[self.equipLoc[1]]);
+            else
+                rootDescription:CreateTitle(_G[self.equipLoc]);
+            end
+            rootDescription:CreateDivider()
+            for _, link in ipairs(itemsForSlot) do
+                local itemName = C_Item.GetItemNameByID(link)
+                local itemButton = rootDescription:CreateButton(link, function()
+                    if ( C_Item.IsEquippableItem(itemName) and not C_Item.IsEquippedItem(itemName) ) then
+                        local slotID = GetInventorySlotInfo(self.invSlotName)
+                        C_Item.EquipItemByName(itemName, slotID);
+                        
+                        C_Timer.After(1, function()
+                            self.character.model:SetUnit("player");
+                        end)
+                    end
+                end)
+                itemButton:SetTooltip(function()
+                    GameTooltip:SetHyperlink(link);
+                end)
+            end
+        end)
+    end
+end
+
+local qualityAtlasMap = {
+    --[1] = "loottoast-itemborder-blue",
+    [2] = "loottoast-itemborder-green",
+    [3] = "loottoast-itemborder-blue",
+    [4] = "loottoast-itemborder-purple",
+    [5] = "loottoast-itemborder-orange",
+}
+
+function FancyPanelCharacterInvSlotMixin:UpdateVisuals()
+    if self.itemLink then
+        local icon = select(5, C_Item.GetItemInfoInstant(self.itemLink));
+        self.icon:SetTexture(icon);
+
+        local quality = C_Item.GetItemQualityByID(self.itemLink);
+        if qualityAtlasMap[quality] then
+            self.qualityMask:SetAtlas(qualityAtlasMap[quality]);
+            self.qualityMask:Show();
+        else
+            self.qualityMask:Hide();
+        end
+
+        self.link:SetText(self.itemLink);
+
+    else
+        self.link:SetText("");
+    end
 end

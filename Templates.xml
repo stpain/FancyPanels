@@ -1,3 +1,12 @@
+<!-- 
+    © 2026 Sam Pain. All Rights Reserved.
+    
+    No part of this work may be reproduced 
+    without the prior written permission 
+    of the author. 
+-->
+
+
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
 
@@ -6,7 +15,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
         <FontHeight val="15"/>
 	</Font>
 
-    <Frame name="FancyPanelsSpellbookSpellItem" mixin="FancyPanelsSpellbookSpellItemMixin" enableMouse="true" virtual="true">
+    <Frame name="FancyPanelsSpellbookSpellItem" mixin="FancyPanelsSpellbookSpellItemMixin" enableMouseMotion="true" enableMouse="true" virtual="true">
         <Layers>
 			<Layer level="BACKGROUND">
 				<Texture parentKey="Backplate" alpha="0.33" file="Interface\AddOns\FancyPanels\Media\SpellbookElements.png">
@@ -46,7 +55,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
 				</Layers>
 			</Frame>
 
-            <Button parentKey="Button" registerForClicks="anyDown" enableMouse="true" enableKeyboard="true" enableMouseClicks="true">
+            <Button parentKey="Button" registerForClicks="anyDown" enableMouseMotion="true" enableMouse="true" enableKeyboard="true" enableMouseClicks="true">
 				<Size x="40" y="40"/>
 				<Anchors>
 					<Anchor point="LEFT"/>
@@ -488,7 +497,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     </Button>
 
 
-    <Button name="FancyPanelCharacterInvSlotTemplate" virtual="true">
+    <Button name="FancyPanelCharacterInvSlotTemplate" mixin="FancyPanelCharacterInvSlotMixin" virtual="true">
         <Size x="44" y="44"/>
         <Layers>
             <Layer level="BACKGROUND">
@@ -499,7 +508,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
                     </Anchors>
                 </Texture>
             </Layer>
-            <Layer level="ARTWORK">
+            <Layer level="ARTWORK" textureSubLevel="1">
                 <Texture parentKey="icon">
                     <Anchors>
                         <Anchor point="TOPLEFT" x="5" y="-5"/>
@@ -507,16 +516,26 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
                     </Anchors>
                 </Texture>
             </Layer>
-            <Layer level="OVERLAY">
-                <Texture atlas="Relicforge-Slot-frame">
+            <Layer level="ARTWORK" textureSubLevel="2">
+                <Texture parentKey="qualityMask" atlas="loottoast-itemborder-blue" alpha="1" hidden="true">
                     <Anchors>
-                        <Anchor point="TOPLEFT" x="-5" y="5"/>
-                        <Anchor point="BOTTOMRIGHT" x="5" y="-5"/>
+                        <Anchor point="TOPLEFT" x="7" y="-7"/>
+                        <Anchor point="BOTTOMRIGHT" x="-7" y="7"/>
                     </Anchors>
                 </Texture>
             </Layer>
+            <Layer level="OVERLAY">
+                <Texture atlas="Relicforge-Slot-frame">
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="-6" y="6"/>
+                        <Anchor point="BOTTOMRIGHT" x="6" y="-6"/>
+                    </Anchors>
+                </Texture>
+                <FontString parentKey="link" inherits="GameFontNormalSmall"/>
+            </Layer>
         </Layers>
         <Scripts>
+            <OnClick method="OnClick"/>
             <OnLeave>
                 GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
             </OnLeave>

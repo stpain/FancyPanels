@@ -1,9 +1,19 @@
+--[[
 
+    © 2026 Sam Pain. All Rights Reserved.
+    
+    No part of this work may be reproduced 
+    without the prior written permission 
+    of the author.
+
+]]
 
 local _, addon = ...;
 
 local Defaults = {
-
+    characterModelShowItemLinks = false,
+    characterModelShowItemQuality = false,
+    characterModelShowGemSockets = false,
 };
 
 
@@ -31,7 +41,15 @@ function SavedVars:Init()
 
 end
 
+function SavedVars:Get(key)
+    if self.db and self.db[key] then
+        return self.db[key];
+    end
+end
 
+function SavedVars:Set(key, val)
+    self.db[key] = val;
+end
 
 
 

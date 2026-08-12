@@ -1,3 +1,13 @@
+--[[
+
+    © 2026 Sam Pain. All Rights Reserved.
+    
+    No part of this work may be reproduced 
+    without the prior written permission 
+    of the author.
+
+]]
+
 
 
 --[[
@@ -288,7 +298,7 @@ function FancyPanelsMixin:PLAYER_ENTERING_WORLD(...)
         self:InitCharacterModel();
 
         self:Character_InitStats();
-        self:InitEquipmentControls();
+        self:Character_InitOutfitsAndInvSlots();
         self:UpdateOutfitList();
 
     end
@@ -1002,181 +1012,6 @@ function FancyPanelsMixin:InitCharacterModel()
     self.character.model.background:SetAtlas(string.format("dressingroom-background-%s", classFile:lower()));
     --self.character.model.background:SetAtlas(string.format("transmog-background-race-%s", raceInfo:lower()));
 
-
-    --https://warcraft.wiki.gg/wiki/InventorySlotID
-
-    local function InitInvSlotButton(button, equipLoc, invSlotName, tooltipAnchor)
-
-        local invSlotId = GetInventorySlotInfo(invSlotName);
-        button.invSlotId = invSlotId;
-
-
-        button:RegisterEvent("UNIT_INVENTORY_CHANGED");
-        button:SetScript("OnEvent", function(b, event, ...)
-            if (event ~= "UNIT_INVENTORY_CHANGED") then
-                return;
-            end
-            local unit = ...;
-            if (unit ~= "player") then
-                return;
-            end
-
-            b.itemLink = GetInventoryItemLink(unit, b.invSlotId);
-            if b.itemLink then
-                local icon = select(5, C_Item.GetItemInfoInstant(b.itemLink));
-                b.icon:SetTexture(icon);
-            end
-
-        end)
-
-        --set icon on init
-        button.itemLink = GetInventoryItemLink("player", button.invSlotId);
-        if button.itemLink then
-            local icon = select(5, C_Item.GetItemInfoInstant(button.itemLink));
-            button.icon:SetTexture(icon);
-        end
-
-        button:SetScript("OnClick", function()
-            
-            local itemsForSlot = Util.GetContainerItemsForInvSlot(equipLoc);
-            if (#itemsForSlot > 0) then
-            
-                MenuUtil.CreateContextMenu(button, function(_, rootDescription)
-
-                    if type(equipLoc) == "table" then
-                        rootDescription:CreateTitle(_G[equipLoc[1]]);
-                    else
-                        rootDescription:CreateTitle(_G[equipLoc]);
-                    end
-
-                    rootDescription:CreateDivider()
-
-                    for _, link in ipairs(itemsForSlot) do
-                        local itemName = C_Item.GetItemNameByID(link)
-                        local itemButton = rootDescription:CreateButton(link, function()
-                        	if ( C_Item.IsEquippableItem(itemName) and not C_Item.IsEquippedItem(itemName) ) then
-			                    local slotID = GetInventorySlotInfo(invSlotName)
-                                C_Item.EquipItemByName(itemName, slotID);
-                                
-                                C_Timer.After(1, function()
-                                    self.character.model:SetUnit("player");
-                                end)
-                            end
-                        end)
-
-                        itemButton:SetTooltip(function()
-                            GameTooltip:SetHyperlink(link);
-                        end)
-                    end
-                end)
-
-            end
-        end)
-
-
-        button:SetScript("OnEnter", function(b)
-            if b.itemLink then
-                GameTooltip:SetOwner(b, tooltipAnchor);
-                GameTooltip:SetHyperlink(b.itemLink);
-                GameTooltip:Show();
-            end
-        end)
-    end
-
-
-    --[[
-        add slots here
-    ]]
-    local lastButton;
-    for k, invSlot in ipairs(addon.Constants.InvSlotLayouts.Left) do
-
-        local slotButton = CreateFrame("Button", nil, self.character.model, "FancyPanelCharacterInvSlotTemplate");
-        slotButton:SetFrameLevel(self.character.model:GetFrameLevel() + 1);
-        if (lastButton == nil) then
-            slotButton:SetPoint("TOPLEFT", 24, -140);
-        else
-            slotButton:SetPoint("TOP", lastButton, "BOTTOM", 0, -12);
-        end
-        lastButton = slotButton;
-
-        local info = addon.Constants.InventorySlots[k]
-        slotButton.backgroundIcon:SetTexture(info.icon);
-
-        InitInvSlotButton(slotButton, invSlot, info.slot, "TOPRIGHT");
-
-    end
-    lastButton = nil;
-    for k, invSlot in ipairs(addon.Constants.InvSlotLayouts.Right) do
-
-        local slotButton = CreateFrame("Button", nil, self.character.model, "FancyPanelCharacterInvSlotTemplate");
-        slotButton:SetFrameLevel(self.character.model:GetFrameLevel() + 1);
-        if (lastButton == nil) then
-            slotButton:SetPoint("TOPRIGHT", -24, -140);
-        else
-            slotButton:SetPoint("TOP", lastButton, "BOTTOM", 0, -12);
-        end
-        lastButton = slotButton;
-
-        local info = addon.Constants.InventorySlots[k+8]
-        slotButton.backgroundIcon:SetTexture(info.icon);
-
-        InitInvSlotButton(slotButton, invSlot, info.slot, "TOPLEFT");
-
-    end
-
-    local mainHandSlot = CreateFrame("Button", nil, self.character.model, "FancyPanelCharacterInvSlotTemplate");
-    mainHandSlot:SetFrameLevel(self.character.model:GetFrameLevel() + 1);
-    mainHandSlot:SetPoint("BOTTOMLEFT", 180, 60);
-    mainHandSlot.backgroundIcon:SetTexture(addon.Constants.InventorySlots[17].icon);
-
-    InitInvSlotButton(
-        mainHandSlot,
-        {
-            "INVTYPE_WEAPONMAINHAND",
-            "INVTYPE_WEAPON",
-            "INVTYPE_2HWEAPON",
-        },
-        addon.Constants.InventorySlots[17].slot,
-        "TOPLEFT"
-    );
-    
-    local offHandSlot = CreateFrame("Button", nil, self.character.model, "FancyPanelCharacterInvSlotTemplate");
-    offHandSlot:SetFrameLevel(self.character.model:GetFrameLevel() + 1);
-    offHandSlot:SetPoint("LEFT", mainHandSlot, "RIGHT", 12, 0);
-    offHandSlot.backgroundIcon:SetTexture(addon.Constants.InventorySlots[18].icon);
-
-    InitInvSlotButton(
-        offHandSlot,
-        {
-            "INVTYPE_WEAPONOFFHAND",
-            "INVTYPE_WEAPON",
-        },
-        addon.Constants.InventorySlots[18].slot,
-            "TOPLEFT"
-    );
-
-    local rangedSlot = CreateFrame("Button", nil, self.character.model, "FancyPanelCharacterInvSlotTemplate");
-    rangedSlot:SetFrameLevel(self.character.model:GetFrameLevel() + 1);
-    rangedSlot:SetPoint("LEFT", offHandSlot, "RIGHT", 12, 0);
-    rangedSlot.backgroundIcon:SetTexture(addon.Constants.InventorySlots[19].icon);
-
-    InitInvSlotButton(
-        rangedSlot,
-        {
-            "INVTYPE_RANGED",
-        },
-        addon.Constants.InventorySlots[19].slot,
-            "TOPLEFT"
-    );
-    
-    
-
-    -- local relicSlot = CreateFrame("Button", nil, self.character.model, "FancyPanelCharacterInvSlotTemplate");
-    -- relicSlot:SetFrameLevel(self.character.model:GetFrameLevel() + 1);
-    -- relicSlot:SetPoint("LEFT", rangedSlot, "RIGHT", 12, 0);
-    -- InitInvSlotButton(relicSlot, addon.Constants.InventorySlots[20].slot, "TOPLEFT");
-    -- relicSlot.backgroundIcon:SetTexture(addon.Constants.InventorySlots[20].icon);
-
     --FancyPanelCharacterInvSlotTemplate
 end
 
@@ -1379,7 +1214,7 @@ function FancyPanelsMixin:UpdateOutfitList()
     self.character.outfitList.scrollView:SetDataProvider(dp);
 end
 
-function FancyPanelsMixin:InitEquipmentControls()
+function FancyPanelsMixin:Character_InitOutfitsAndInvSlots()
 
     self.character.newOutfit.text:SetText(TRANSMOG_OUTFIT_NEW)
     self.character.newOutfit:SetScript("OnClick", function()
@@ -1411,6 +1246,187 @@ function FancyPanelsMixin:InitEquipmentControls()
 
         end)
     end)
+
+
+
+
+    --https://warcraft.wiki.gg/wiki/InventorySlotID
+    local function InitInvSlotButton(button, equipLoc, invSlotName, tooltipAnchor)
+
+        local invSlotId = GetInventorySlotInfo(invSlotName);
+        button.invSlotId = invSlotId;
+        button.equipLoc = equipLoc;
+
+        button:RegisterEvent("UNIT_INVENTORY_CHANGED");
+        button:SetScript("OnEvent", function(b, event, ...)
+            if (event ~= "UNIT_INVENTORY_CHANGED") then
+                return;
+            end
+            local unit = ...;
+            if (unit ~= "player") then
+                return;
+            end
+            b.itemLink = GetInventoryItemLink(unit, b.invSlotId);
+            b:UpdateVisuals();
+        end)
+
+        --set icon on init
+        button.itemLink = GetInventoryItemLink("player", button.invSlotId);
+        button:UpdateVisuals();
+
+        -- button:SetScript("OnClick", function()
+            
+        --     local itemsForSlot = Util.GetContainerItemsForInvSlot(equipLoc);
+        --     if (#itemsForSlot > 0) then
+            
+        --         MenuUtil.CreateContextMenu(button, function(_, rootDescription)
+
+        --             if type(equipLoc) == "table" then
+        --                 rootDescription:CreateTitle(_G[equipLoc[1]]);
+        --             else
+        --                 rootDescription:CreateTitle(_G[equipLoc]);
+        --             end
+
+        --             rootDescription:CreateDivider()
+
+        --             for _, link in ipairs(itemsForSlot) do
+        --                 local itemName = C_Item.GetItemNameByID(link)
+        --                 local itemButton = rootDescription:CreateButton(link, function()
+        --                 	if ( C_Item.IsEquippableItem(itemName) and not C_Item.IsEquippedItem(itemName) ) then
+		-- 	                    local slotID = GetInventorySlotInfo(invSlotName)
+        --                         C_Item.EquipItemByName(itemName, slotID);
+                                
+        --                         C_Timer.After(1, function()
+        --                             self.character.model:SetUnit("player");
+        --                         end)
+        --                     end
+        --                 end)
+
+        --                 itemButton:SetTooltip(function()
+        --                     GameTooltip:SetHyperlink(link);
+        --                 end)
+        --             end
+        --         end)
+
+        --     end
+        -- end)
+
+
+        button:SetScript("OnEnter", function(b)
+            if b.itemLink then
+                GameTooltip:SetOwner(b, tooltipAnchor);
+                GameTooltip:SetHyperlink(b.itemLink);
+                GameTooltip:Show();
+            end
+        end)
+    end
+
+
+    --[[
+        add slots here
+    ]]
+    local lastButton;
+    for k, invSlot in ipairs(addon.Constants.InvSlotLayouts.Left) do
+
+        local slotButton = CreateFrame("Button", nil, self.character.model, "FancyPanelCharacterInvSlotTemplate");
+        slotButton:SetFrameLevel(self.character.model:GetFrameLevel() + 1);
+        if (lastButton == nil) then
+            slotButton:SetPoint("TOPLEFT", 24, -140);
+        else
+            slotButton:SetPoint("TOP", lastButton, "BOTTOM", 0, -12);
+        end
+        lastButton = slotButton;
+
+        slotButton.link:SetPoint("BOTTOMLEFT", slotButton, "BOTTOMRIGHT", 5, 10);
+
+        local info = addon.Constants.InventorySlots[k]
+        slotButton.backgroundIcon:SetTexture(info.icon);
+
+        if (k == 5) then
+            InitInvSlotButton(slotButton, {"INVTYPE_CHEST", "INVTYPE_ROBE"}, info.slot, "TOPRIGHT");
+        else
+            InitInvSlotButton(slotButton, invSlot, info.slot, "TOPRIGHT");
+        end
+
+
+    end
+    lastButton = nil;
+    for k, invSlot in ipairs(addon.Constants.InvSlotLayouts.Right) do
+
+        local slotButton = CreateFrame("Button", nil, self.character.model, "FancyPanelCharacterInvSlotTemplate");
+        slotButton:SetFrameLevel(self.character.model:GetFrameLevel() + 1);
+        if (lastButton == nil) then
+            slotButton:SetPoint("TOPRIGHT", -24, -140);
+        else
+            slotButton:SetPoint("TOP", lastButton, "BOTTOM", 0, -12);
+        end
+        lastButton = slotButton;
+
+        slotButton.link:SetPoint("BOTTOMRIGHT", slotButton, "BOTTOMLEFT", -5, 10);
+
+        local info = addon.Constants.InventorySlots[k+8]
+        slotButton.backgroundIcon:SetTexture(info.icon);
+
+        InitInvSlotButton(slotButton, invSlot, info.slot, "TOPLEFT");
+
+    end
+
+    local offHandSlot = CreateFrame("Button", nil, self.character.model, "FancyPanelCharacterInvSlotTemplate");
+    offHandSlot:SetFrameLevel(self.character.model:GetFrameLevel() + 1);
+    offHandSlot:SetPoint("BOTTOM", 0, 60);
+    offHandSlot.backgroundIcon:SetTexture(addon.Constants.InventorySlots[18].icon);
+
+    InitInvSlotButton(
+        offHandSlot,
+        {
+            "INVTYPE_WEAPONOFFHAND",
+            "INVTYPE_WEAPON",
+        },
+        addon.Constants.InventorySlots[18].slot,
+        "TOPLEFT"
+    );
+
+    local mainHandSlot = CreateFrame("Button", nil, self.character.model, "FancyPanelCharacterInvSlotTemplate");
+    mainHandSlot:SetFrameLevel(self.character.model:GetFrameLevel() + 1);
+    mainHandSlot:SetPoint("RIGHT", offHandSlot, "LEFT", -12, 0);
+    mainHandSlot.backgroundIcon:SetTexture(addon.Constants.InventorySlots[17].icon);
+    mainHandSlot.link:SetPoint("RIGHT", mainHandSlot, "LEFT", -5, 0);
+
+    InitInvSlotButton(
+        mainHandSlot,
+        {
+            "INVTYPE_WEAPONMAINHAND",
+            "INVTYPE_WEAPON",
+            "INVTYPE_2HWEAPON",
+        },
+        addon.Constants.InventorySlots[17].slot,
+        "TOPLEFT"
+    );
+    
+    local rangedSlot = CreateFrame("Button", nil, self.character.model, "FancyPanelCharacterInvSlotTemplate");
+    rangedSlot:SetFrameLevel(self.character.model:GetFrameLevel() + 1);
+    rangedSlot:SetPoint("LEFT", offHandSlot, "RIGHT", 12, 0);
+    rangedSlot.backgroundIcon:SetTexture(addon.Constants.InventorySlots[19].icon);
+    rangedSlot.link:SetPoint("LEFT", rangedSlot, "RIGHT", 5, 0);
+
+    InitInvSlotButton(
+        rangedSlot,
+        {
+            "INVTYPE_RANGED",
+            "INVTYPE_RANGEDRIGHT",
+        },
+        addon.Constants.InventorySlots[19].slot,
+        "TOPLEFT"
+    );
+    
+    
+
+    -- local relicSlot = CreateFrame("Button", nil, self.character.model, "FancyPanelCharacterInvSlotTemplate");
+    -- relicSlot:SetFrameLevel(self.character.model:GetFrameLevel() + 1);
+    -- relicSlot:SetPoint("LEFT", rangedSlot, "RIGHT", 12, 0);
+    -- InitInvSlotButton(relicSlot, addon.Constants.InventorySlots[20].slot, "TOPLEFT");
+    -- relicSlot.backgroundIcon:SetTexture(addon.Constants.InventorySlots[20].icon);
+
 end
 
 
