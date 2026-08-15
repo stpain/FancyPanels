@@ -11,9 +11,11 @@
 local _, addon = ...;
 
 local Defaults = {
-    characterModelShowItemLinks = false,
-    characterModelShowItemQuality = false,
-    characterModelShowGemSockets = false,
+    characterModel = {
+        showItemLinks = false,
+        showItemQuality = false,
+        showGemSockets = false,
+    },
 };
 
 
@@ -39,16 +41,37 @@ function SavedVars:Init()
     end
     local characterID = string.format("%s-%s", name, realm);
 
+    --DevTools_Dump({self.db});
+
 end
 
 function SavedVars:Get(key)
-    if self.db and self.db[key] then
-        return self.db[key];
+    if string.find(key, ".", nil, true) then
+        local k1, k2 = strsplit(".", key);
+        if self.db and self.db[k1] and self.db[k1][k2] then
+            return self.db[k1][k2];
+        end
+    else
+        if self.db and self.db[key] then
+            return self.db[key];
+        end
     end
 end
 
 function SavedVars:Set(key, val)
-    self.db[key] = val;
+    if string.find(key, ".", nil, true) then
+        local k1, k2 = strsplit(".", key);
+        if (self.db[k1] == nil) then
+            self.db[k1] = {};
+        end
+        self.db[k1][k2] = val;
+
+        addon.CallbackRegistry:TriggerEvent(addon.Callbacks.SavedVariables_OnChanged, k1, k2, val)
+    else
+        self.db[key] = val;
+
+        addon.CallbackRegistry:TriggerEvent(addon.Callbacks.SavedVariables_OnChanged, key, val)
+    end
 end
 
 

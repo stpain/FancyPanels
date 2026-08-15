@@ -11,8 +11,9 @@
 local name, addon = ...;
 
 addon.Callbacks = {
-    SavedVariables_OnInitialized = "ON_SAVED_VARIABLES_INITIALIZED",
-    SavedVariables_OnReset = "ON_SAVED_VARIABLES_RESET",
+    SavedVariables_OnInitialized = "SAVED_VARIABLES_ON_INITIALIZED",
+    SavedVariables_OnReset = "SAVED_VARIABLES_ON_RESET",
+    SavedVariables_OnChanged = "SAVED_VARS_ON_CHANGED",
 
     -- Specialization_OnSelected = "ON_SPECIALIZATION_SELECTED",
 

@@ -65,9 +65,6 @@ function Util.tableMoveDown(tbl, i)
     Util.tableSwap(tbl, i, i + 1)
 end
 
-function Util.GetAvailableTalentPointsForLevel(level)
-    return ((level -10) / 2) +1;
-end
 
 function Util.GetSpecDesc(classID, tabID)
 
@@ -162,13 +159,6 @@ function Util.GetClassData(classID)
 
             specs[i].sampleTalents = Util.GetClassSampleTalents(classID, id)
 
-            -- specs[i].majorBonuses = {GetMajorTalentTreeBonuses(i)}
-            -- specs[i].minorBonuses = {GetMinorTalentTreeBonuses(i)}
-            -- for k, v in ipairs({GetTalentTreeMasterySpells(i)}) do
-            --     table.insert(specs[i].minorBonuses, v)
-            -- end
-            --DevTools_Dump({GetTalentTreeEarlySpells(i)})
-
         end
 
     else
@@ -219,9 +209,11 @@ end
 
 function Util.GetClassSampleTalents(classID, specID)
 
+    print(specID)
+
     local sampleTalents = {};
 
-    --most classes have a worthy talent in rows 6/8 col 2 but not all!
+    --most classes have a worthy talent in rows 6/8 col 2 (col 1 as its zero based) but not all!
     local sample1Col, sample2Col = 1, 1;
     local sample1Row, sample2Row = 6, 8;
 
@@ -233,6 +225,10 @@ function Util.GetClassSampleTalents(classID, specID)
 
         if (classID == 7) and (specID == 262) then
             sample1Col = 2; --shaman natures swiftness
+        end
+
+        if (classID == 2) and (specID == 381) then
+            sample1Row = 5;
         end
 
         sample1 = Util.GetTalentData(classID, specID, sample1Row, sample1Col);
@@ -362,7 +358,119 @@ function Util.GetClassSpells(classID)
     return ret;
 end
 
+local ignoreEnchantSlotIDs = {
+    [true] = {
+        [2] = true,
+        [6] = true,
+        [13] = true,
+        [14] = true,
+    },
+    [false] = {
+        [2] = true,
+        [6] = true,
+        [11] = true,
+        [12] = true,
+        [13] = true,
+        [14] = true,
+    },
+}
 
+local socketFileIDs = {
+    EMPTY_SOCKET_BLUE = 136256,
+    EMPTY_SOCKET_META = 136257,
+    EMPTY_SOCKET_RED = 136258,
+    EMPTY_SOCKET_YELLOW = 136259,
+    EMPTY_SOCKET_PRISMATIC = 458977,
+}
+local socketOrder = {
+    [1] = "EMPTY_SOCKET_META",
+    [2] = "EMPTY_SOCKET_RED",
+    [3] = "EMPTY_SOCKET_YELLOW",
+    [4] = "EMPTY_SOCKET_BLUE",
+    [5] = "EMPTY_SOCKET_PRISMATIC",
+}
+
+function Util.ExtractLink(text)
+    -- linkType: |H([^:]*): matches everything that's not a colon, up to the first colon.
+    -- linkOptions: ([^|]*)|h matches everything that's not a |, up to the first |h.
+    -- displayText: (.*)|h matches everything up to the second |h.
+    -- Ex: |cffffffff|Htype:a:b:c:d|htext|h|r becomes type, a:b:c:d, text
+    return string.match(text, [[|H([^:]*):([^|]*)|h(.*)|h]]);
+end
+
+function Util.GetItemSocketInfo(link)
+    
+    local x, payload = Util.ExtractLink(link)
+
+    local itemID, enchantID, gem1, gem2, gem3 = strsplit(":", payload)
+
+    enchantID = tonumber(enchantID)
+    gem1 = tonumber(gem1)
+    gem2 = tonumber(gem2)
+    gem3 = tonumber(gem3)
+
+    local gems = { gem1, gem2, gem3, }
+
+    local numSockets = 0;
+
+    local sockets = {
+        EMPTY_SOCKET_META = 0,
+        EMPTY_SOCKET_RED = 0,
+        EMPTY_SOCKET_YELLOW = 0,
+        EMPTY_SOCKET_BLUE = 0,
+        EMPTY_SOCKET_PRISMATIC = 0,
+    }
+    
+    local socketInfo= {}
+
+    local stats = GetItemStats(link) or {}
+    --DevTools_Dump(stats)
+    for k, v in pairs(stats) do
+        if k:find("SOCKET", nil, true) then
+            sockets[k] = v;
+            numSockets =numSockets + 1;
+        end
+    end
+
+    if numSockets > 0 then
+
+        local gemIndex = 1;
+        for k, socketType in ipairs(socketOrder) do
+            if type(sockets[socketType]) == "number" and (sockets[socketType] > 0) then
+                for i = 1, sockets[socketType] do
+                    table.insert(socketInfo, {
+                        textureFileID = socketFileIDs[socketType],
+                        gemItemID = gems[gemIndex],
+                    })
+                    gemIndex = gemIndex + 1;
+                end
+            end
+        end
+
+        -- print(link)
+        -- DevTools_Dump(sockets)
+        -- DevTools_Dump(itemSocketsOrderd)
+        
+        -- for i = 1, 3 do
+
+        --     if type(gems[i]) == "number" then
+                
+        --         ret.actualSocketString = string.format("%s %s", ret.actualSocketString, CreateSimpleTextureMarkup(select(5, GetItemInfoInstant(gems[i])), socketIconSize, socketIconSize, 0, 0))
+            
+        --     elseif type(itemSocketsOrderd[i]) == "number" then
+                
+        --         ret.actualSocketString = string.format("%s %s", ret.actualSocketString, CreateSimpleTextureMarkup(itemSocketsOrderd[i], socketIconSize+2, socketIconSize+2, 0, 0))
+        --         ret.missingSocketsString = string.format("%s %s", ret.missingSocketsString, CreateSimpleTextureMarkup(itemSocketsOrderd[i], socketIconSize+2, socketIconSize+2, 0, 0))
+                
+        --         ret.numEmptySockets = ret.numEmptySockets + 1;
+            
+        --     end
+        -- end
+
+        return socketInfo;
+    end
+
+end
 
 
 function Util.TrimNumber(num)

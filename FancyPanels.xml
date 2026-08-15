@@ -56,6 +56,11 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
                     <Anchor point="LEFT" relativeKey="$parent.tab3" relativePoint="RIGHT" x="-10" y="0"/>
                 </Anchors>
             </Button>
+            <Button name="$parentTab5" parentKey="tab5" parentArray="tabs" inherits="PlayerTalentTabTemplate" id="5" >
+                <Anchors>
+                    <Anchor point="LEFT" relativeKey="$parent.tab4" relativePoint="RIGHT" x="-10" y="0"/>
+                </Anchors>
+            </Button>
 
             <!-- <Frame parentKey="specGroupParent" parentArray="views" setAllPoints="true">
                 <Layers>
@@ -505,7 +510,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
 
             </Frame>
 
-            <Frame parentKey="character" setAllPoints="true" parentArray="views" hidden="true">
+            <Frame parentKey="character" parentArray="views" hidden="true" useParentLevel="true">
                 <Anchors>
                     <Anchor point="TOPLEFT" x="3" y="-24"/>
                     <Anchor point="BOTTOMRIGHT" x="-3" y="3"/>
@@ -599,6 +604,26 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
                             </Layer>
                         </Layers>
                     </PlayerModel>
+
+                    <Button parentKey="modelOptions">
+                        <Anchors>
+                            <Anchor point="TOPLEFT" x="670" y="-20"/>
+                        </Anchors>
+                        <Size x="32" y="32"/>
+                        <NormalTexture atlas="common-button-square-gray-up"/>
+                        <PushedTexture atlas="common-button-square-gray-down"/>
+                        <HighlightTexture atlas="Forge-ColorSwatchSelection"/>
+                         <Layers>
+                            <Layer level="OVERLAY">
+                                <Texture atlas="OptionsIcon-Brown">
+                                    <Anchors>
+                                        <Anchor point="CENTER"/>
+                                    </Anchors>
+                                    <Size x="14" y="14"/>
+                                </Texture>
+                            </Layer>
+                         </Layers>
+                    </Button>
 
                     <Frame parentKey="tabContainer" inherits="InsetFrameTemplate">
                         <Anchors>
@@ -817,6 +842,36 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
                             </Frame>
 
                         </Frames>
+                    </Frame>
+                </Frames>
+            </Frame>
+
+            <Frame parentKey="news" parentArray="views" hidden="true" useParentLevel="true">
+                <Anchors>
+                    <Anchor point="TOPLEFT" x="3" y="-24"/>
+                    <Anchor point="BOTTOMRIGHT" x="-3" y="3"/>
+                </Anchors>
+
+                <Layers>
+                    <Layer level="BACKGROUND">
+                        <Texture atlas="ClassHall_StoneFrame-BackgroundTile" vertTile="true" horizTile="true">
+                            <Anchors>
+                                <Anchor point="TOPLEFT"/>
+                                <Anchor point="BOTTOMRIGHT"/>
+                            </Anchors>
+                        </Texture>
+                    </Layer>
+                </Layers>
+
+                <Frames>
+                    <Frame parentKey="changeLog" inherits="ScrollingFontTemplate">
+                        <Anchors>
+                            <Anchor point="TOPLEFT" x="60" y="-60"/>
+                            <Anchor point="BOTTOMRIGHT" x="-60" y="60"/>
+                        </Anchors>
+                        <KeyValues>
+                            <KeyValue key="fontName" value="GameFontNormalLarge"/> 
+                        </KeyValues>
                     </Frame>
                 </Frames>
             </Frame>

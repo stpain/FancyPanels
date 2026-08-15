@@ -11,6 +11,7 @@
 local name, addon = ...;
 
 local Util = addon.Util;
+local SavedVars = addon.SavedVars;
 
 
 
@@ -265,6 +266,10 @@ function FancyPanelsSpecPanelMixin:SetSampleTalent(info)
     self.majorBonus1:ClearAllPoints();
 
     if info == nil then
+        return;
+    end
+
+    if info[1] == nil then
         return;
     end
 
@@ -1768,6 +1773,7 @@ local shorterSectionSpacing = 19;
 
 FancyPanelsOutfitListItemMixin = {}
 function FancyPanelsOutfitListItemMixin:OnLoad()
+    self:RegisterForDrag("LeftButton");
     Util.ApplyAtlas(self.iconBorder, "interface/talentframe/talents", "talents-node-square-gray")
 end
 function FancyPanelsOutfitListItemMixin:SetDataBinding(binding, height)
@@ -1783,6 +1789,10 @@ function FancyPanelsOutfitListItemMixin:SetDataBinding(binding, height)
 
     self:SetScript("OnClick", function()
         C_EquipmentSet.UseEquipmentSet(setID);
+    end)
+
+    self:SetScript("OnDragStart", function()
+        C_EquipmentSet.PickupEquipmentSet(setID);
     end)
 
     self.modify:SetScript("OnClick", function (_, hwButton)
@@ -1818,7 +1828,35 @@ end
 FancyPanelCharacterInvSlotMixin = {};
 
 function FancyPanelCharacterInvSlotMixin:OnLoad()
-    
+    Util.ApplyAtlas(self.iconBorder, "interface/talentframe/talents", "talents-node-square-gray")
+    self:RegisterEvent("UNIT_INVENTORY_CHANGED");
+    addon.CallbackRegistry:RegisterCallback(addon.Callbacks.SavedVariables_OnChanged, self.UpdateVisuals, self)
+end
+
+function FancyPanelCharacterInvSlotMixin:SetAllign(allign)
+    if (allign == "left") then
+        self.link:SetPoint("TOPLEFT", self, "TOPRIGHT", 5, -4);
+        self.link:SetJustifyH("LEFT");
+        self.gemContainer:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", 5, 4)
+
+    elseif (allign == "right") then
+        self.link:SetPoint("TOPRIGHT", self, "TOPLEFT", -5, -4);
+        self.link:SetJustifyH("RIGHT");
+        self.gemContainer:SetPoint("BOTTOMRIGHT", self, "BOTTOMLEFT", -5, 4)
+
+    end
+end
+
+function FancyPanelCharacterInvSlotMixin:OnEvent(event, ...)
+    if (event ~= "UNIT_INVENTORY_CHANGED") then
+        --return;
+    end
+    local unit = ...;
+    if (unit ~= "player") then
+        return;
+    end
+    self.itemLink = GetInventoryItemLink(unit, self.invSlotId);
+    self:UpdateVisuals();
 end
 
 function FancyPanelCharacterInvSlotMixin:OnClick()
@@ -1834,13 +1872,10 @@ function FancyPanelCharacterInvSlotMixin:OnClick()
             for _, link in ipairs(itemsForSlot) do
                 local itemName = C_Item.GetItemNameByID(link)
                 local itemButton = rootDescription:CreateButton(link, function()
-                    if ( C_Item.IsEquippableItem(itemName) and not C_Item.IsEquippedItem(itemName) ) then
-                        local slotID = GetInventorySlotInfo(self.invSlotName)
-                        C_Item.EquipItemByName(itemName, slotID);
-                        
-                        C_Timer.After(1, function()
-                            self.character.model:SetUnit("player");
-                        end)
+                    if ( C_Item.IsEquippableItem(itemName)) then -- and not C_Item.IsEquippedItem(itemName) ) then
+                        --local slotID = GetInventorySlotInfo(self.invSlotName)
+                        --print(self.invSlotId)
+                        C_Item.EquipItemByName(itemName, self.invSlotId);
                     end
                 end)
                 itemButton:SetTooltip(function()
@@ -1851,8 +1886,17 @@ function FancyPanelCharacterInvSlotMixin:OnClick()
     end
 end
 
-local qualityAtlasMap = {
-    --[1] = "loottoast-itemborder-blue",
+-- local qualityAtlasMap = {
+--     --[1] = "loottoast-itemborder-blue",
+--     [2] = "bags-glow--green",
+--     [3] = "bags-glow-blue",
+--     [4] = "bags-glow-purple",
+--     [5] = "bags-glow-orange",
+-- }
+
+local qualityBorderMap = {
+    --[0] = "Relicforge-Slot-frame",
+    [1] = "loottoast-itemborder-artifact",
     [2] = "loottoast-itemborder-green",
     [3] = "loottoast-itemborder-blue",
     [4] = "loottoast-itemborder-purple",
@@ -1860,21 +1904,140 @@ local qualityAtlasMap = {
 }
 
 function FancyPanelCharacterInvSlotMixin:UpdateVisuals()
+
+
+    self.link:SetText("");
+    self.icon:SetTexture(self.slotIcon);
+    self.qualityBorder:Hide();
+    self.gemContainer:Hide();
+    self.iconBorder:Show();
+
+    for i = 1, 3 do
+        self.gemContainer["gem"..i]:Hide();
+    end
+
     if self.itemLink then
         local icon = select(5, C_Item.GetItemInfoInstant(self.itemLink));
         self.icon:SetTexture(icon);
 
-        local quality = C_Item.GetItemQualityByID(self.itemLink);
-        if qualityAtlasMap[quality] then
-            self.qualityMask:SetAtlas(qualityAtlasMap[quality]);
-            self.qualityMask:Show();
-        else
-            self.qualityMask:Hide();
+        if (SavedVars:Get("characterModel.showItemLinks") == true) then
+            self.link:SetText(self.itemLink);
         end
 
-        self.link:SetText(self.itemLink);
+        if (SavedVars:Get("characterModel.showItemQuality") == true) then
+            local quality = C_Item.GetItemQualityByID(self.itemLink);
+            if qualityBorderMap[quality] then
+                self.qualityBorder:SetAtlas(qualityBorderMap[quality]);
+                self.qualityBorder:Show();
+                self.iconBorder:Hide();
+            end
+        end
 
-    else
-        self.link:SetText("");
+        if (SavedVars:Get("characterModel.showGemSockets") == true) then
+
+            self.gemContainer:Show();
+
+            local itemInfo = Util.GetItemSocketInfo(self.itemLink);
+            if itemInfo then
+                --itemInfo.link = self.itemLink;
+                --DevTools_Dump({itemInfo});
+
+                self.gemContainer:SetWidth(1 + (#itemInfo * 19));
+
+                for i = 1, 3 do
+                    if itemInfo[i] then
+                        if itemInfo[i].gemItemID then
+                            local icon = select(5, C_Item.GetItemInfoInstant(itemInfo[i].gemItemID))
+                            self.gemContainer["gem"..i]:SetNormalTexture(icon)
+                            self.gemContainer["gem"..i]:SetGem(itemInfo[i].gemItemID)
+                            self.gemContainer["gem"..i]:Show();
+                        else
+                            self.gemContainer["gem"..i]:SetNormalTexture(itemInfo[i].textureFileID)
+                            self.gemContainer["gem"..i]:Show();
+                        end
+                    end
+                end
+            end
+
+        end
+
     end
+end
+
+
+
+
+
+
+
+FancyPanelsItemSocketMixin = {};
+
+function FancyPanelsItemSocketMixin:OnLoad()
+	self:RegisterForDrag("LeftButton");
+	self:RegisterEvent("SOCKET_INFO_UPDATE");
+end
+
+function FancyPanelsItemSocketMixin:SetGem(itemID)
+    self.itemID = itemID;
+end
+
+function FancyPanelsItemSocketMixin:ClickSocketButton()
+	StaticPopup_Hide("DELETE_ITEM");
+	StaticPopup_Hide("DELETE_QUEST_ITEM");
+	StaticPopup_Hide("DELETE_GOOD_ITEM");
+	StaticPopup_Hide("DELETE_GOOD_QUEST_ITEM");
+	C_ItemSocketInfo.ClickSocketButton(self:GetID());
+end
+
+function FancyPanelsItemSocketMixin:OnClick()
+	-- if ( IsModifiedClick() ) then
+	-- 	local link = C_ItemSocketInfo.GetNewSocketLink(self:GetID()) or
+	-- 	C_ItemSocketInfo.GetExistingSocketLink(self:GetID());
+	-- 	HandleModifiedItemClick(link);
+	-- else
+	-- 	self:ClickSocketButton();
+	-- end
+
+
+end
+
+function FancyPanelsItemSocketMixin:OnReceiveDrag()
+	self:ClickSocketButton();
+end
+
+function FancyPanelsItemSocketMixin:OnDragStart()
+	self:ClickSocketButton();
+end
+
+function FancyPanelsItemSocketMixin:OnEnter()
+    if self.itemID then
+        GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT");
+        GameTooltip:SetItemByID(self.itemID);
+        GameTooltip:Show();
+    end
+	-- local newSocket = C_ItemSocketInfo.GetNewSocketInfo(self:GetID());
+	-- local existingSocket = C_ItemSocketInfo.GetExistingSocketInfo(self:GetID());
+
+	-- GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+	-- if ( newSocket ) then
+	-- 	GameTooltip:SetSocketGem(self:GetID());
+	-- else
+	-- 	GameTooltip:SetExistingSocketGem(self:GetID());
+	-- end
+	-- if ( newSocket and existingSocket ) then
+	-- 	ShoppingTooltip1:SetOwner(GameTooltip, "ANCHOR_NONE");
+	-- 	ShoppingTooltip1:ClearAllPoints();
+	-- 	ShoppingTooltip1:SetPoint("TOPLEFT", "GameTooltip", "TOPRIGHT", 0, -10);
+	-- 	ShoppingTooltip1:SetExistingSocketGem(self:GetID(), true);
+	-- 	ShoppingTooltip1:Show();
+	-- end
+end
+
+
+function FancyPanelsItemSocketMixin:OnEvent(event, ...)
+	if ( event == "SOCKET_INFO_UPDATE" ) then
+		if ( GameTooltip:IsOwned(self) ) then
+			self:OnEnter();
+		end
+	end
 end
