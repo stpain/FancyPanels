@@ -15,13 +15,20 @@ local Defaults = {
         showItemLinks = false,
         showItemQuality = false,
         showGemSockets = false,
+        showItemEnchantments = false,
+        suggestItemUpgrade = false,
+        confirmSocketChanges = true,
     },
 };
 
 
 local SavedVars = {};
 
-function SavedVars:Init()
+function SavedVars:Init(reset)
+
+    if (reset == true) then
+        FancyPanelsAccount = nil;
+    end
 
     if FancyPanelsAccount == nil then
         FancyPanelsAccount = {};
@@ -33,6 +40,18 @@ function SavedVars:Init()
         if self.db[k] == nil then
             self.db[k] = v;
         end
+
+        if type(v) == "table" then
+            for k2, v2 in pairs(v) do
+                if self.db[k][k2] == nil then
+                    self.db[k][k2] = v2;
+                end
+            end
+        end
+    end
+
+    if (reset == true) then
+        addon.CallbackRegistry:TriggerEvent(addon.Callbacks.SavedVariables_OnChanged)
     end
 
     local name, realm = UnitName("player")
@@ -65,6 +84,7 @@ function SavedVars:Set(key, val)
             self.db[k1] = {};
         end
         self.db[k1][k2] = val;
+        --print("db val", self.db[k1][k2])
 
         addon.CallbackRegistry:TriggerEvent(addon.Callbacks.SavedVariables_OnChanged, k1, k2, val)
     else

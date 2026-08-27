@@ -209,7 +209,7 @@ end
 
 function Util.GetClassSampleTalents(classID, specID)
 
-    print(specID)
+    --print(specID)
 
     local sampleTalents = {};
 
@@ -348,32 +348,6 @@ function Util.ApplyAtlas(texture, atlasFile, atlasName)
     end
 end
 
-function Util.GetClassSpells(classID)
-    local ret = {};
-    for k, v in ipairs(addon.SPELL_DATA) do
-        if (v.classID == classID) then
-            table.insert(ret, v.spellID);
-        end
-    end
-    return ret;
-end
-
-local ignoreEnchantSlotIDs = {
-    [true] = {
-        [2] = true,
-        [6] = true,
-        [13] = true,
-        [14] = true,
-    },
-    [false] = {
-        [2] = true,
-        [6] = true,
-        [11] = true,
-        [12] = true,
-        [13] = true,
-        [14] = true,
-    },
-}
 
 local socketFileIDs = {
     EMPTY_SOCKET_BLUE = 136256,
@@ -398,16 +372,20 @@ function Util.ExtractLink(text)
     return string.match(text, [[|H([^:]*):([^|]*)|h(.*)|h]]);
 end
 
-function Util.GetItemSocketInfo(link)
+function Util.GetItemModInfo(link)
     
     local x, payload = Util.ExtractLink(link)
 
     local itemID, enchantID, gem1, gem2, gem3 = strsplit(":", payload)
 
+    --print(link, enchantID, gem1, gem2, gem3);
+
     enchantID = tonumber(enchantID)
     gem1 = tonumber(gem1)
     gem2 = tonumber(gem2)
     gem3 = tonumber(gem3)
+
+    --print(link, enchantID, gem1, gem2, gem3);
 
     local gems = { gem1, gem2, gem3, }
 
@@ -421,7 +399,12 @@ function Util.GetItemSocketInfo(link)
         EMPTY_SOCKET_PRISMATIC = 0,
     }
     
-    local socketInfo= {}
+    local modInfo = {}
+
+    table.insert(modInfo, {
+        modType = "enchant",
+        id = enchantID,
+    })
 
     local stats = GetItemStats(link) or {}
     --DevTools_Dump(stats)
@@ -433,14 +416,14 @@ function Util.GetItemSocketInfo(link)
     end
 
     if numSockets > 0 then
-
         local gemIndex = 1;
         for k, socketType in ipairs(socketOrder) do
             if type(sockets[socketType]) == "number" and (sockets[socketType] > 0) then
                 for i = 1, sockets[socketType] do
-                    table.insert(socketInfo, {
+                    table.insert(modInfo, {
                         textureFileID = socketFileIDs[socketType],
-                        gemItemID = gems[gemIndex],
+                        id = gems[gemIndex],
+                        modType = "gem",
                     })
                     gemIndex = gemIndex + 1;
                 end
@@ -450,26 +433,25 @@ function Util.GetItemSocketInfo(link)
         -- print(link)
         -- DevTools_Dump(sockets)
         -- DevTools_Dump(itemSocketsOrderd)
-        
+
         -- for i = 1, 3 do
 
         --     if type(gems[i]) == "number" then
-                
+
         --         ret.actualSocketString = string.format("%s %s", ret.actualSocketString, CreateSimpleTextureMarkup(select(5, GetItemInfoInstant(gems[i])), socketIconSize, socketIconSize, 0, 0))
-            
+
         --     elseif type(itemSocketsOrderd[i]) == "number" then
-                
+
         --         ret.actualSocketString = string.format("%s %s", ret.actualSocketString, CreateSimpleTextureMarkup(itemSocketsOrderd[i], socketIconSize+2, socketIconSize+2, 0, 0))
         --         ret.missingSocketsString = string.format("%s %s", ret.missingSocketsString, CreateSimpleTextureMarkup(itemSocketsOrderd[i], socketIconSize+2, socketIconSize+2, 0, 0))
-                
+
         --         ret.numEmptySockets = ret.numEmptySockets + 1;
-            
+
         --     end
         -- end
-
-        return socketInfo;
     end
-
+    
+    return modInfo;
 end
 
 
@@ -554,10 +536,95 @@ function Util.GetContainerItemsForInvSlot(equipLoc, invType, invSlotId)
     return ret;
 end
 
+local ItemInfoInstantKeyMap = {
+    itemID = 1,
+    itemType = 2,
+    itemSubType = 3,
+    equipLoc = 4,
+    icon = 5,
+    classID = 6,
+    subClassID = 7,
+}
+function Util.GetContainerItems(search)
+
+    local ret = {};
+
+    for bag = 0, 4 do
+        for slot = 1, C_Container.GetContainerNumSlots(bag) do
+            local link = C_Container.GetContainerItemLink(bag, slot)
+            if link then
+                local isMatch = true;
+                local slotInfo = C_Container.GetContainerItemInfo(bag, slot)
+                --local itemID, itemType, itemSubType, _equipLoc, icon, class, subClass = C_Item.GetItemInfoInstant(link);
+                local info = {C_Item.GetItemInfoInstant(link)};
+                for k, v in pairs(search) do
+                    if info[ItemInfoInstantKeyMap[k]] ~= v then
+                        isMatch = false;
+                    end
+                end
+                if isMatch == true then
+                    table.insert(ret, {
+                        bag = bag,
+                        slot = slot,
+                        link = link,
+                        isLocked = slotInfo.isLocked,
+                    });
+                    --DevTools_Dump(info)
+                end
+            end
+        end
+    end
+    
+    return ret;
+end
 
 
 
 
+function Util.GetAllCurrentReputations()
+    local reputations = {};
+    local factionMenu = {}
+    local numFactions = GetNumFactions()
+    local factionIndex = 1
+    local preHeader;
+    while (factionIndex <= numFactions) do
+        local factionName, description, standingId, bottomValue, topValue, earnedValue, atWarWith, canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild, factionID, hasBonusRepGain, canBeLFGBonus =
+        GetFactionInfo(factionIndex)
+
+        if isHeader then
+            if factionName and (not reputations[factionName]) then
+                reputations[factionName] = {}
+                table.insert(factionMenu, {
+                    text = factionName,
+                    func = function()
+                        --self:LoadReputations(reputations[factionName])
+                    end,
+                })
+            end
+
+            preHeader = factionName
+            if isCollapsed then
+                ExpandFactionHeader(factionIndex)
+                numFactions = GetNumFactions()
+            end
+        end
+        if (not isHeader) and reputations[preHeader] then
+            local currentValue = (earnedValue - bottomValue)
+            local barMaxValue = (topValue - bottomValue)
+
+            table.insert(reputations[preHeader], {
+                factionID = factionID,
+                standingId = standingId,
+                currentValue = currentValue,
+                maxValue = barMaxValue,
+                factionName = factionName,
+                description = description,
+            })
+        end
+        factionIndex = factionIndex + 1
+    end
+    return reputations;
+end
 
 
 

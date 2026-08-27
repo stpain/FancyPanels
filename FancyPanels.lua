@@ -52,6 +52,8 @@ FancyPanelsMixin = {}
 
 function FancyPanelsMixin:OnLoad()
 
+    FancyPanelsPortrait:SetAtlas("newplayerchat-chaticon-newcomer");
+
     C_AddOns.LoadAddOn("Blizzard_TalentUI");
     ShowUIPanel(PlayerTalentFrame);
     HideUIPanel(PlayerTalentFrame);
@@ -68,6 +70,10 @@ function FancyPanelsMixin:OnLoad()
     self:RegisterEvent("SPELLS_CHANGED");
     self:RegisterEvent("CHARACTER_POINTS_CHANGED");
     self:RegisterEvent("EQUIPMENT_SWAP_FINISHED");
+
+    self:RegisterEvent("UNIT_HEALTH");
+    self:RegisterEvent("UNIT_MAXHEALTH");
+    self:RegisterEvent("UNIT_POWER_UPDATE");
    
     --NineSliceUtil.ApplyLayout(self, addon.Constants.NineSliceLayouts.ParentBorder)
     --NineSliceUtil.ApplyLayout(self.talentTreesParent.petTalentParent, addon.Constants.NineSliceLayouts.ParentBorder)
@@ -143,8 +149,8 @@ function FancyPanelsMixin:OnLoad()
     --[[
         Set the character top tab
     ]]
-    local characterTabs = {"Stats", "Equipment", SKILLS}
-    for i = 1, 3 do
+    local characterTabs = {"Stats", "Equipment", SKILLS, REPUTATION}
+    for i = 1, 4 do
         self.character.tabContainer["tab"..i].Text:SetText(characterTabs[i])
         self.character.tabContainer["tab"..i]:SetScript("OnClick", function()
             self:CharacterTab_OnSelected(i);
@@ -215,7 +221,7 @@ function FancyPanelsMixin:OnLoad()
     -- local log = addon.changeLog[version];
     -- if log then
         local text = "";
-    for _, entry in ipairs(addon.changeLog) do
+        for _, entry in ipairs(addon.changeLog) do
             local versionText = string.format("|cffffffff[version %s]|r", entry.version)
             if (text == "") then
                 text = versionText;
@@ -229,6 +235,10 @@ function FancyPanelsMixin:OnLoad()
         end
         self.news.changeLog:SetText(text);
     --end
+
+    self.news.nuke:SetScript("OnClick", function()
+        SavedVars:Init(true);
+    end)
 
     addon.CallbackRegistry:RegisterCallback(addon.Callbacks.CharacterEquipmentSet_OnDeleted, self.CharacterEquipmentSet_OnDeleted, self);
     addon.CallbackRegistry:RegisterCallback(addon.Callbacks.CharacterEquipmentSet_OnEdit, self.CharacterEquipmentSet_OnEdit, self);
@@ -333,6 +343,46 @@ function FancyPanelsMixin:EQUIPMENT_SWAP_FINISHED(...)
     local result, setID = ...;
     self:UpdateCharacterModel();
 end
+
+local function GetUnitHealthFormatted(unit)
+    local hp, maxHp = UnitHealth(unit), UnitHealthMax(unit);
+    return string.format("%d / %d", hp, maxHp);
+end
+function FancyPanelsMixin:UNIT_HEALTH(...)
+    local unit = ...;
+    if unit ~= "player" then
+        return;
+    end
+    self.character.tabContainer.stats.health:SetText(GetUnitHealthFormatted(unit));
+end
+function FancyPanelsMixin:UNIT_MAXHEALTH(...)
+    local unit = ...;
+    if unit ~= "player" then
+        return;
+    end
+    self.character.tabContainer.stats.health:SetText(GetUnitHealthFormatted(unit));
+end
+
+local function UpdateUnitPower(unit, parentFrame)
+    local powerTypeEnum, powerTypeToken, rgbX, rgbY, rgbZ = UnitPowerType(unit);
+    local power, maxPower = UnitPower(unit), UnitPowerMax(unit, powerTypeEnum);
+    parentFrame.power:SetText(string.format("%d / %d", power, maxPower));
+    parentFrame.powerLabel:SetText(_G[powerTypeToken]);
+    -- local rgb = GetPowerBarColor(powerTypeEnum);
+    -- parentFrame.powerLabel:SetTextColor(rgb.r, rgb.g, rgb.b, 1);
+end
+function FancyPanelsMixin:UNIT_POWER_UPDATE(...)
+    local unit, powerTypeString = ...;
+    if unit ~= "player" then
+        return;
+    end
+    UpdateUnitPower(unit, self.character.tabContainer.stats)
+end
+
+
+
+
+
 
 
 
@@ -439,7 +489,9 @@ function FancyPanelsMixin:SetScripts_Character()
     local function SetSelected(key)
         key = "characterModel."..key;
         local currentValue = SavedVars:Get(key);
+        --print("currentValue", currentValue);
         SavedVars:Set(key, not currentValue);
+        --print("newValue", not currentValue);
 
         --DevTools_Dump({SavedVars.db})
     end
@@ -447,8 +499,18 @@ function FancyPanelsMixin:SetScripts_Character()
     local characterModelOptions = {
         { key = "showItemLinks", text = "Show Item Links", },
         { key = "showItemQuality", text = "Show Item Quality Borders", },
-        { key = "showGemSockets", text = "Show Gem Sockets", },
+        { key = "showItemEnchantments", text = "Show Item Enchantments", },
+        --{ key = "suggestItemUpgrade", text = "Suggest Item Upgrades", tooltipText = "Shows a green upgrade arrow next to an item in the inventory slot context menu." },
+    }
 
+    local socketOptions = {
+        { key = "showGemSockets", text = "Show Gem Sockets", },
+        { 
+            key = "confirmSocketChanges", 
+            text = "Confirm Socket Changes.", 
+            tooltipTitle = "Confirm Socket Changes", 
+            tooltipText = "\nEnabled\n|cffffffffPromts you to confirm changes to gem sockets.|r\n\nDisabled\n|cffffffffGems will be socketed immediately, any existing gems will be destroyed.|r", 
+        },
     }
 
     self.character.modelOptions:SetScript("OnClick", function(button)
@@ -456,8 +518,42 @@ function FancyPanelsMixin:SetScripts_Character()
             rootDescription:CreateTitle(OPTIONS);
             rootDescription:CreateDivider();
 
-            for _, option in ipairs(characterModelOptions) do
-                rootDescription:CreateCheckbox(option.text, IsSelected, SetSelected, option.key)
+            for i, option in ipairs(characterModelOptions) do
+
+                local checkbox = rootDescription:CreateCheckbox(option.text, IsSelected, SetSelected, option.key)
+
+                if (option.tooltipTitle or option.tooltipText) then
+                    checkbox:SetTooltip(function(_, tooltip)
+                        if (option.tooltipTitle) then
+                            GameTooltip:AddLine(option.tooltipTitle);
+                        end
+                        if (option.tooltipText) then
+                            GameTooltip:AddLine(option.tooltipText, nil, nil, nil, true);
+                        end
+                        GameTooltip:Show();
+                    end)
+                end
+
+            end
+
+            if (WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC) then
+                rootDescription:CreateDivider();
+                rootDescription:CreateTitle("Gem Sockets");
+
+                for j, option in ipairs(socketOptions) do
+                    local checkbox = rootDescription:CreateCheckbox(option.text, IsSelected, SetSelected, option.key)
+                    if (option.tooltipTitle or option.tooltipText) then
+                        checkbox:SetTooltip(function(_, tooltip)
+                            if (option.tooltipTitle) then
+                                GameTooltip:AddLine(option.tooltipTitle);
+                            end
+                            if (option.tooltipText) then
+                                GameTooltip:AddLine(option.tooltipText, nil, nil, nil, true);
+                            end
+                            GameTooltip:Show();
+                        end)
+                    end
+                end
             end
 
         end)
@@ -488,9 +584,7 @@ function FancyPanelsMixin:CreateMinimapButton()
         self.minimapButton:Register('FancyPanelsMinimapButton', self.minimapButtonDataObject, {})
     end
 
-    -- _G['LibDBIcon10_FancyPanelsMinimapButton'].UpdateTooltip = function()
-        
-    -- end
+    _G['LibDBIcon10_FancyPanelsMinimapButton'].icon:SetAtlas("newplayerchat-chaticon-newcomer")
 
     _G['LibDBIcon10_FancyPanelsMinimapButton']:SetScript("OnEnter", function(s)
         GameTooltip:SetOwner(s, "ANCHOR_RIGHT")
@@ -894,7 +988,6 @@ function FancyPanelsMixin:LoadSpellsForTab(tabIndex, pageIndex)
     end
 
     if (tabIndex == 6) then
-        --self:LoadUnlearnedSpells();
         return;
     end
 
@@ -1002,90 +1095,6 @@ function FancyPanelsMixin:SpellbookTab_OnSelected(index)
     self:LoadSpellsForTab(index)
 end
 
-function FancyPanelsMixin:LoadUnlearnedSpells(pageIndex)
-
-    local _, _, classID = UnitClass("player");
-    local spells = Util.GetClassSpells(classID);
-
-    self.spellbook.selectedTab = 6;
-
-    self.spellbook.tabHeader.Text:SetText(UNLEARN);
-
-    self.spellbook.nextPage:SetScript("OnClick", nil);
-    self.spellbook.previousPage:SetScript("OnClick", nil);
-
-    if not pageIndex then
-        pageIndex = 0;
-    end
-
-    self.spellButtonPool:ReleaseAll();
-
-    local maxSpellsPage1 = 18;
-    local maxSpellsPage2 = 23;
-    local offsetLeft, offsetTop = 33, -180;
-    local lastButton;
-    local buttons = {};
-    local startIndex = pageIndex * (maxSpellsPage1 + maxSpellsPage2 - 1);
-    --local _, _, offset, numSlots = GetSpellTabInfo(tabIndex)
-
-
-    -- using a 0 index for pages as we use the pageIndex to calculate the startIndex for spells
-    -- for page 1 we need to add 0 
-    local numPages = math.floor(#spells / (maxSpellsPage1 + maxSpellsPage2));
-
-    self.spellbook.nextPage:SetScript("OnClick", function()
-        pageIndex = pageIndex + 1;
-        if pageIndex > numPages then
-            pageIndex = numPages;
-        end
-        self:LoadUnlearnedSpells(pageIndex);
-    end)
-
-    self.spellbook.previousPage:SetScript("OnClick", function()
-        pageIndex = pageIndex - 1;
-        if pageIndex < 0 then
-            pageIndex = 0;
-        end
-        self:LoadUnlearnedSpells(pageIndex)
-    end)
-
-
-    for i = (startIndex + 1), #spells do
-        local spellButton = self.spellButtonPool:Acquire();
-        spellButton.captureEnabled = false;
-
-        spellButton:SetID(spells[i]); --set the frameID as the spellID
-        spellButton:InitSpell(); --update the frmes texts and icon
-        spellButton:Show();
-
-        table.insert(buttons, spellButton);
-
-        if #buttons == 1 then
-            spellButton:SetPoint("TOPLEFT", offsetLeft, offsetTop);
-            lastButton = spellButton;
-
-        elseif (#buttons == (maxSpellsPage1 + 1)) then
-            spellButton:SetPoint("TOPLEFT", 670, offsetTop)
-            lastButton = spellButton;
-
-        elseif (#buttons == (maxSpellsPage1 + maxSpellsPage2)) then
-            return;
-
-        else
-            if ((#buttons - 1) % 3) == 0 then
-                lastButton = buttons[#buttons - 3];
-                spellButton:SetPoint("TOP", lastButton, "BOTTOM", 0, -1);
-                lastButton = spellButton;
-
-            else
-                spellButton:SetPoint("LEFT", lastButton, "RIGHT", 1, 0);
-                lastButton = spellButton;
-
-            end
-        end
-    end
-
-end
 
 
 
@@ -1097,6 +1106,7 @@ local CharacterTabsMenu = {
     "Character_ShowStats",
     "Character_ShowEquipment",
     "Character_ShowSkills",
+    "Character_ShowReputations",
 }
 function FancyPanelsMixin:CharacterTab_OnSelected(tabID)
 
@@ -1145,6 +1155,9 @@ function FancyPanelsMixin:Character_InitModel()
 end
 
 function FancyPanelsMixin:Character_InitStats()
+
+    self.character.tabContainer.stats.health:SetText(GetUnitHealthFormatted("player"));
+    UpdateUnitPower("player", self.character.tabContainer.stats)
 
     local lastframe;
     for _, f in addon.PlayerStats.BaseStatsIter() do
@@ -1300,7 +1313,65 @@ function FancyPanelsMixin:Character_ShowEquipment()
 end
 
 function FancyPanelsMixin:Character_ShowSkills()
-    
+
+end
+
+function FancyPanelsMixin:Character_ShowReputations()
+
+    local repPanel = self.character.tabContainer.reputations;
+    local currentHeader = repPanel.headerLabel:GetText();
+
+    local pad = 5;
+    local spacing = 30;
+    local view = CreateScrollBoxListGridView(4, pad, pad, pad, pad, spacing, spacing);
+
+    local function RepInitializer(dial, data)
+        dial:InitRep(data)
+    end
+
+    view:SetElementInitializer("FancyPanelsRepDialTemplate", RepInitializer)
+
+    ScrollUtil.InitScrollBoxWithScrollBar(repPanel.scrollBox, repPanel.scrollBar, view);
+
+
+    --[[
+                    rep = {
+                    factionID = factionID,
+                    standingId = standingId,
+                    currentValue = currentValue,
+                    maxValue = barMaxValue,
+                }
+    ]]
+
+    local function LoadReps(reps)
+        local dataProvider = CreateDataProvider(reps);
+        view:SetDataProvider(dataProvider, false);
+    end
+
+    repPanel.headerDropDown:SetScript("OnClick", function(button)
+        local reps = Util.GetAllCurrentReputations();
+
+        if (reps) then
+            MenuUtil.CreateContextMenu(button, function(_, root)
+                
+                for header, data in pairs(reps) do
+                    root:CreateButton(header, function()
+                        LoadReps(data);
+                        repPanel.headerLabel:SetText(header);
+                    end)
+                end
+            end)
+        end
+    end)
+
+    if currentHeader ~= "" then
+        local reps = Util.GetAllCurrentReputations();
+        if reps[currentHeader] then
+            LoadReps(reps[currentHeader])
+        end
+    end
+
+    self.character.tabContainer.reputations:Show();
 end
 
 
@@ -1353,10 +1424,12 @@ function FancyPanelsMixin:Character_InitInvSlots()
     --https://warcraft.wiki.gg/wiki/InventorySlotID
     local function InitInvSlotButton(button, equipLoc, invSlotInfo, tooltipAnchor)
 
-        local invSlotId = GetInventorySlotInfo(invSlotInfo.slot); --SECONDARYHANDSLOT
+        local invSlotId, textureName, checkRelic = GetInventorySlotInfo(invSlotInfo.slot);
         button.invSlotId = invSlotId;
         button.equipLoc = equipLoc;
         button.slotIcon = invSlotInfo.icon;
+
+        button:SetID(invSlotId);
 
         --set icon on init
         button.itemLink = GetInventoryItemLink("player", button.invSlotId);
@@ -1432,6 +1505,7 @@ function FancyPanelsMixin:Character_InitInvSlots()
         {
             "INVTYPE_RANGED",
             "INVTYPE_RANGEDRIGHT",
+            "INVTYPE_RELIC",
         },
         addon.Constants.InventorySlots[19],
         "TOPLEFT"
@@ -1448,6 +1522,8 @@ function FancyPanelsMixin:Character_InitInvSlots()
         {
             "INVTYPE_WEAPONOFFHAND",
             "INVTYPE_WEAPON",
+            "INVTYPE_SHIELD",
+            "INVTYPE_HOLDABLE",
         },
         addon.Constants.InventorySlots[18],
         "TOPLEFT"

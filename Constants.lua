@@ -10,6 +10,28 @@
 
 local name, addon = ...;
 
+--hijack the popup as we have an animation
+StaticPopupDialogs["FANCY_PANELS_CONFIRM_ACCEPT_SOCKETS"] = {
+	text = CONFIRM_ACCEPT_SOCKETS,
+	button1 = YES,
+	button2 = NO,
+	OnAccept = function(dialog, data)
+        --print("OnAccept")
+		C_ItemSocketInfo.AcceptSockets();
+		PlaySound(SOUNDKIT.JEWEL_CRAFTING_FINALIZE);
+        data.callback();
+        ItemSocketingFrameCloseButton:Click();
+	end,
+	OnCancel = function(dialog, data)
+        --print("OnCancel")
+        data.callback();
+        ItemSocketingFrameCloseButton:Click();
+	end,
+	timeout = 0,
+	showAlert = 1,
+	hideOnEscape = 1,
+};
+
 StaticPopupDialogs["FANCY_PANELS_CONFIRM_LEARN_PREVIEW_TALENTS"] = {
 	text = CONFIRM_LEARN_PREVIEW_TALENTS,
 	button1 = YES,
@@ -69,6 +91,67 @@ StaticPopupDialogs['FancyPanelsConfirmTalentRecordTalentSpendDialog'] = {
 
 addon.Constants = {}
 
+addon.Constants.RepIcons = {
+    [749] = 135862, --hydraxian
+    [576] = 236696, --timbermaw
+    --[] = 134156, --brood
+    [529] = 133440, --AD
+    [909] = 134481, --dmf
+    [609] = 133663, --cenarian
+    [349] = 1733737, --raven
+    [70] = 134166, --syndicate
+    [59] = 2965290, --thorium b
+    [270] = 132529, --zandar
+
+    [1106] = 133441, --argent crusade
+    [1090] = 236693, --kirin tor
+    [1098] = 236694, --knights ebon
+    [1156] = 133441, --ashen verdict
+    [1073] = 236697, --kaluak
+    [1119] = 236241, --sons hodir
+    [1091] = 236699,
+
+    [1012] = 236691, --deathsworn
+    [942] = 132265, --cenarian
+    [946] = 134502, --honor hold
+    [989] = 2026009, --keepers of time
+    [978] = 134060, --kureni
+    [1015] = 132250, --nether
+    [1038] = 133594, --ogrila
+    [970] = 134532, --spore
+    [933] = 132881, --consortium
+
+    [1011] = 135796, --lower city
+    [1031] = 132191, --sha'tari
+    [1077] = 134993, --shattered sun
+    [932] = 135745, --aldor/scry
+    [934] = 135745,
+    [935] = 135796, --sha'tar
+
+    [1168] = 514261, --guild
+    -- [1106] = 236690, --argent crusade
+    -- [1098] = 236694, --ebon blade
+    -- [942] = 133663, --cenarion exp
+    -- [946] = 134502, --honor hold
+    -- [970] = 132371, -- sporeagar
+
+    [930] = 236715, -- exodar
+    [69] = 236740, -- darnassus
+    [1134] = 462338, -- gilneas
+    [54] = 255139, --gnomergan
+    [47] = 236805, --ironforge
+    [72] = 236761, --elwynn
+
+    -- [933] = 1711338, --consortium
+    -- [932] = 134552, --aldor
+    [1101] = 1, --lower city
+    --[609] = 
+
+    [729] = 236711, --alterac/stormpike/frostwolf
+    [730] = 236711, --alterac/stormpike
+
+}
+
 addon.Constants.StarterBuilds = {
     DRUID = {
         "https://www.wowhead.com/cata/talent-calc/druid/33230221121212111201-01-020331",
@@ -123,6 +206,22 @@ addon.Constants.StarterBuilds = {
     },
 }
 
+addon.Constants.StatGlobals = {
+    --main stats
+    "ITEM_MOD_STAMINA_SHORT",
+    "ITEM_MOD_AGILITY_SHORT",
+    "ITEM_MOD_STRENGTH_SHORT",
+    "ITEM_MOD_INTELLECT_SHORT",
+    "ITEM_MOD_SPIRIT_SHORT",
+    --spell/healing (check in wrath)
+    --these seem to be the dual effects for +healing and +spell (not equal damage and healing)
+    "ITEM_MOD_SPELL_HEALING_DONE",
+    "ITEM_MOD_SPELL_DAMAGE_DONE",
+    --this is equal spell damage + healing
+    "ITEM_MOD_SPELL_POWER",
+    --mana regen
+    "ITEM_MOD_POWER_REGEN0_SHORT",
+}
 
 addon.Constants.InvSlotLayouts = {
     Left = {

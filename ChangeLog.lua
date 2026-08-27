@@ -12,6 +12,18 @@ local _, addon = ...;
 
 local ChangeLog = {
     {
+        version = "0.3",
+        log = {
+            "Fixed a bug for 'Relic' slots on character inventory - should now find correct items.",
+            "Added reputations (need to find and update some icons).",
+            "Added health and power to character stats.",
+            "Added gem socket menu, you can now click gem sockets or icons to see a list of gems from your bags, select the gem to socket it.",
+            "Added item enchantment info.",
+            "Changed minimap button icon",
+            "Added addon to 'User Interface' category in the addon list",
+        },
+    },
+    {
         version = "0.2",
         log = {
             "Added OnDragStart to Spellbok items, can now be dragged to action bars.",

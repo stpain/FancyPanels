@@ -70,20 +70,17 @@ function FancyPanelsSpellbookSpellItemMixin:OnLoad()
 
     self.Button:SetScript("OnEnter", function(_, hwButtonPressed)
         if self.captureEnabled then
-            --if FancyPanelsCliqueKeyGrabber:IsShown() == false then
-                FancyPanelsCliqueKeyGrabber:SetID(self:GetID());
-                FancyPanelsCliqueKeyGrabber:ClearAllPoints();
-                FancyPanelsCliqueKeyGrabber:SetParent(self.Button);
-                FancyPanelsCliqueKeyGrabber:SetPoint("CENTER", self.Button, "CENTER", 0, 0);
-                FancyPanelsCliqueKeyGrabber:SetSize(40, 40)
-                
-                Clique_RegisterQuickbindButtonScripts(FancyPanelsCliqueKeyGrabber);
+            FancyPanelsCliqueKeyGrabber:SetID(self:GetID());
+            FancyPanelsCliqueKeyGrabber:ClearAllPoints();
+            FancyPanelsCliqueKeyGrabber:SetParent(self.Button);
+            FancyPanelsCliqueKeyGrabber:SetPoint("CENTER", self.Button, "CENTER", 0, 0);
+            FancyPanelsCliqueKeyGrabber:SetSize(40, 40)
+            
+            Clique_RegisterQuickbindButtonScripts(FancyPanelsCliqueKeyGrabber);
 
-                FancyPanelsCliqueKeyGrabber:Show();
+            FancyPanelsCliqueKeyGrabber:Show();
 
-                self:OnEnter();
-                --print("Setup CaptureButton");
-            --end
+            self:OnEnter();
         end
     end)
 
@@ -1823,26 +1820,51 @@ end
 
 
 
-
+--glueannouncementpopup-icon-info
 
 FancyPanelCharacterInvSlotMixin = {};
 
 function FancyPanelCharacterInvSlotMixin:OnLoad()
     Util.ApplyAtlas(self.iconBorder, "interface/talentframe/talents", "talents-node-square-gray")
     self:RegisterEvent("UNIT_INVENTORY_CHANGED");
-    addon.CallbackRegistry:RegisterCallback(addon.Callbacks.SavedVariables_OnChanged, self.UpdateVisuals, self)
+
+    addon.CallbackRegistry:RegisterCallback(addon.Callbacks.SavedVariables_OnChanged, self.OnEvent_Private, self)
+
+end
+
+function FancyPanelCharacterInvSlotMixin:OnEvent_Private()
+    self.suggestedUpgradeLink = nil;
+
+    local newItemLink = GetInventoryItemLink("player", self.invSlotId);
+    if ( newItemLink ~= self.itemLink ) then
+        self.itemChangedAnim:Play();
+    end
+
+    self.itemLink = newItemLink;
+
+    if SavedVars:Get("characterModel.suggestItemUpgrade") == true then
+        --self:CheckForUpgrades();
+    end
+
+    self:UpdateVisuals();
 end
 
 function FancyPanelCharacterInvSlotMixin:SetAllign(allign)
+    self.allign = allign;
+
     if (allign == "left") then
         self.link:SetPoint("TOPLEFT", self, "TOPRIGHT", 5, -4);
         self.link:SetJustifyH("LEFT");
-        self.gemContainer:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", 5, 4)
+        self.itemModContainer:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", 5, 4);
+        self.upgradeSuggestionButton:ClearAllPoints();
+        self.upgradeSuggestionButton:SetPoint("BOTTOMRIGHT", self, "BOTTOMLEFT", -2, 0);
 
     elseif (allign == "right") then
         self.link:SetPoint("TOPRIGHT", self, "TOPLEFT", -5, -4);
         self.link:SetJustifyH("RIGHT");
-        self.gemContainer:SetPoint("BOTTOMRIGHT", self, "BOTTOMLEFT", -5, 4)
+        self.itemModContainer:SetPoint("BOTTOMRIGHT", self, "BOTTOMLEFT", -5, 4)
+        self.upgradeSuggestionButton:ClearAllPoints();
+        self.upgradeSuggestionButton:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", 2, 0);
 
     end
 end
@@ -1855,8 +1877,7 @@ function FancyPanelCharacterInvSlotMixin:OnEvent(event, ...)
     if (unit ~= "player") then
         return;
     end
-    self.itemLink = GetInventoryItemLink(unit, self.invSlotId);
-    self:UpdateVisuals();
+    self:OnEvent_Private();
 end
 
 function FancyPanelCharacterInvSlotMixin:OnClick()
@@ -1871,18 +1892,130 @@ function FancyPanelCharacterInvSlotMixin:OnClick()
             rootDescription:CreateDivider()
             for _, link in ipairs(itemsForSlot) do
                 local itemName = C_Item.GetItemNameByID(link)
+
                 local itemButton = rootDescription:CreateButton(link, function()
-                    if ( C_Item.IsEquippableItem(itemName)) then -- and not C_Item.IsEquippedItem(itemName) ) then
-                        --local slotID = GetInventorySlotInfo(self.invSlotName)
-                        --print(self.invSlotId)
+                    if ( C_Item.IsEquippableItem(itemName)) then
                         C_Item.EquipItemByName(itemName, self.invSlotId);
                     end
                 end)
+
+                if (SavedVars:Get("characterModel.suggestItemUpgrade") == true) and (link == self.suggestedUpgradeLink) then
+                    itemButton:AddInitializer(function(button, desc, menu)
+                        local icon = button:AttachTexture();
+                        icon:SetPoint("LEFT");
+                        icon:SetSize(15, 18);
+                        icon:SetAtlas("loottoast-arrow-green");
+
+                        button.fontString:SetPoint("LEFT", icon, "RIGHT", 4, 0)
+                    end)
+                end
+
+                -- local itemButton = rootDescription:CreateButton(link, function()
+                --     if ( C_Item.IsEquippableItem(itemName)) then -- and not C_Item.IsEquippedItem(itemName) ) then
+                --         --local slotID = GetInventorySlotInfo(self.invSlotName)
+                --         --print(self.invSlotId)
+                --         C_Item.EquipItemByName(itemName, self.invSlotId);
+                --     end
+                -- end)
                 itemButton:SetTooltip(function()
                     GameTooltip:SetHyperlink(link);
                 end)
+
             end
         end)
+    end
+
+    -- local spell = Spell:CreateFromSpellID(13363)
+
+    -- spell:ContinueOnSpellLoad(function()
+    --     print("1", spell:GetSpellName());
+    --     print("2", spell:GetSpellSubtext());
+    --     print("3", spell:GetSpellDescription()); --might be usable?
+    -- end)
+
+
+end
+
+local function CompareStats(s1, s2)
+
+    local t = {};
+
+    if (s1 == nil) or (s2 == nil) then
+        return t;
+    end
+
+    --loop through item1stats and check for a matching stat in item2stats
+    for statGlobalString, statValue in pairs(s1) do
+        if s2[statGlobalString] then
+            local delta = (s2[statGlobalString] - s1[statGlobalString]);
+            t[statGlobalString] = delta;
+        else
+            t[statGlobalString] = -statValue;
+        end
+    end
+
+    for statGlobalString, statValue in pairs(s2) do
+        if t[statGlobalString] == nil then
+            t[statGlobalString] = statValue;
+        end
+    end
+
+    return t;
+end
+
+local function SortStatUpgrades(data)
+
+end
+
+function FancyPanelCharacterInvSlotMixin:CheckForUpgrades()
+    if self.itemLink then
+        local t = {};
+        local currentStats = GetItemStats(self.itemLink)
+        local itemsForSlot = Util.GetContainerItemsForInvSlot(self.equipLoc);
+        
+        --need to include the currently equipped item as well
+        table.insert(itemsForSlot, self.itemLink);
+
+        if (#itemsForSlot > 0) then
+            for _, link in ipairs(itemsForSlot) do
+                local stats = GetItemStats(link);
+                local delta = CompareStats(currentStats, stats);
+
+                -- if delta["ITEM_MOD_INTELLECT_SHORT"] and (delta["ITEM_MOD_INTELLECT_SHORT"] > 0) then
+                --     self.suggestedUpgradeLink = link;
+                -- end
+
+                table.insert(t, {
+                    link = link,
+                    statDelta = delta,
+                })
+            end
+        end
+
+        if (#t > 1) then
+            local stat = "ITEM_MOD_INTELLECT_SHORT";
+
+            local safeSort = true;
+            for k, v in ipairs(t) do
+                if v.statDelta == nil then
+                    safeSort = false;
+                else
+                    if v.statDelta[stat] == nil then
+                        safeSort = false;
+                    end
+                end
+            end
+
+            if safeSort == true then
+                table.sort(t, function(a, b)
+                    return a.statDelta[stat] > b.statDelta[stat];
+                end)
+            end
+        end
+
+        if (#t > 0) then
+            self.suggestedUpgradeLink = t[1].link;
+        end
     end
 end
 
@@ -1903,17 +2036,39 @@ local qualityBorderMap = {
     [5] = "loottoast-itemborder-orange",
 }
 
+local desatEnchantTexture = [[Interface\AddOns\FancyPanels\Media\DesaturatedFormula.png]];
+
 function FancyPanelCharacterInvSlotMixin:UpdateVisuals()
 
 
     self.link:SetText("");
     self.icon:SetTexture(self.slotIcon);
     self.qualityBorder:Hide();
-    self.gemContainer:Hide();
+    self.itemModContainer:Hide();
     self.iconBorder:Show();
+    self.upgradeSuggestionButton:Hide();
 
-    for i = 1, 3 do
-        self.gemContainer["gem"..i]:Hide();
+    self.itemModContainer.mod1:SetNormalTexture(desatEnchantTexture);
+
+    -- if (self.suggestedUpgradeLink ~= nil) then
+    --     self.upgradeSuggestionButton:Show();
+
+    --     self.upgradeSuggestionButton:SetScript("OnEnter", function(button)
+    --         GameTooltip:SetOwner(button, "ANCHOR_TOPRIGHT");
+    --         GameTooltip:SetHyperlink(self.suggestedUpgradeLink);
+    --         GameTooltip:Show();
+    --     end)
+
+    --     self.upgradeSuggestionButton:SetScript("OnClick", function()
+    --         local itemName = C_Item.GetItemNameByID(self.suggestedUpgradeLink)
+    --         if ( C_Item.IsEquippableItem(itemName)) then
+    --             C_Item.EquipItemByName(itemName, self.invSlotId);
+    --         end
+    --     end)
+    -- end
+
+    for i = 1, 4 do
+        self.itemModContainer["mod"..i]:Hide();
     end
 
     if self.itemLink then
@@ -1933,38 +2088,149 @@ function FancyPanelCharacterInvSlotMixin:UpdateVisuals()
             end
         end
 
-        if (SavedVars:Get("characterModel.showGemSockets") == true) then
+        local showEnchant = SavedVars:Get("characterModel.showItemEnchantments");
+        local showSockets = SavedVars:Get("characterModel.showGemSockets");
 
-            self.gemContainer:Show();
-
-            local itemInfo = Util.GetItemSocketInfo(self.itemLink);
-            if itemInfo then
-                --itemInfo.link = self.itemLink;
-                --DevTools_Dump({itemInfo});
-
-                self.gemContainer:SetWidth(1 + (#itemInfo * 19));
-
-                for i = 1, 3 do
-                    if itemInfo[i] then
-                        if itemInfo[i].gemItemID then
-                            local icon = select(5, C_Item.GetItemInfoInstant(itemInfo[i].gemItemID))
-                            self.gemContainer["gem"..i]:SetNormalTexture(icon)
-                            self.gemContainer["gem"..i]:SetGem(itemInfo[i].gemItemID)
-                            self.gemContainer["gem"..i]:Show();
-                        else
-                            self.gemContainer["gem"..i]:SetNormalTexture(itemInfo[i].textureFileID)
-                            self.gemContainer["gem"..i]:Show();
-                        end
-                    end
-                end
-            end
-
-        end
+        --print(showEnchant, showSockets)
+        self:UpdateItemMods(showEnchant, showSockets);
 
     end
 end
 
+-- local slotsCanBeEnchanted = {
+--     [true] = {
+--         [2] = false,
+--         [6] = false,
+--         [13] = false,
+--         [14] = false,
 
+--         [1] = true,
+--         [3] = true,
+--         [4] = true,
+--         [5] = true,
+--         [7] = true,
+--         [8] = true,
+--         [9] = true,
+--         [10] = true,
+--         [11] = true,
+--         [12] = true,
+--         [15] = true,
+--         [16] = true,
+--     },
+--     [false] = {
+--         [2] = false, --neck
+--         [6] = false, --tabard
+--         [11] = false, --finger0
+--         [12] = false, --finger1
+--         [13] = false, --trinket0
+--         [14] = false, --trinket1
+
+--         [1] = true,
+--         [3] = true,
+--         [4] = true,
+--         [5] = true,
+--         [7] = true,
+--         [8] = true,
+--         [9] = true,
+--         [10] = true,
+--         [15] = true,
+--         [16] = true,
+--     },
+-- }
+
+-- local enchantingSkillSpells = {
+--     [7411] = 333, --apprentice
+--     [7412] = 333, --journeyman
+--     [7413] = 333, --expert
+--     [13920] = 333, --artisan
+--     [28029] = 333, --master
+-- }
+-- local function CanEnchantSlot(slot)
+--     local isEnchanter = false;
+--     for id, _ in pairs(enchantingSkillSpells) do
+--         if (C_SpellBook.IsSpellKnown(id)) then
+--             isEnchanter = true;
+--             break;
+--         end
+--     end
+
+--     return slotsCanBeEnchanted[isEnchanter][slot];
+-- end
+
+function FancyPanelCharacterInvSlotMixin:UpdateItemMods(showEnchant, showSockets)
+
+    local itemInfo = Util.GetItemModInfo(self.itemLink);
+    if itemInfo then
+
+        self.itemModContainer:Show();
+
+        self.itemModContainer:SetWidth(1 + (#itemInfo * 19));
+
+        -- if CanEnchantSlot(self:GetID()) == true then
+
+        -- end
+
+        --this value controls which mod button is positioned first, ignore mod1 if no enchant or hide enchants
+        local startIndex = 1;
+        if (showEnchant ~= true) then
+            startIndex = 2;
+        end
+        
+        if (showEnchant == true) then
+            if itemInfo[1] and (itemInfo[1].modType == "enchant") and (itemInfo[1].id) then
+                self.itemModContainer.mod1:SetNormalTexture(desatEnchantTexture);
+                self.itemModContainer.mod1:Show();
+                self.itemModContainer.mod1:SetEnchant(itemInfo[1].id);
+            else
+                startIndex = 2;
+            end
+        end
+
+        if (showSockets == true) then
+            for i = 2, 4 do
+                self.itemModContainer["mod" .. i]:Reset();
+                self.itemModContainer["mod" .. i]:SetInvSlotID(self:GetID());
+                if itemInfo[i] then
+                    if itemInfo[i] then
+                        self.itemModContainer["mod" .. i]:SetGem(itemInfo[i]);
+                        self.itemModContainer["mod" .. i]:Show();
+                    end
+                end
+            end
+        end
+        
+        local lastButton;
+        if self.allign == "right" then
+            for i = startIndex, 4 do
+                --print(i)
+                local button = self.itemModContainer["mod" .. i]
+                button:ClearAllPoints();
+                if (i == startIndex) then
+                    button:SetPoint("RIGHT", self.itemModContainer, "RIGHT", -1, 0);
+                    lastButton = button;
+                else
+                    button:SetPoint("RIGHT", lastButton, "LEFT", -1, 0);
+                    lastButton = button;
+                end
+            end
+        else
+            for i = startIndex, 4 do
+                local button = self.itemModContainer["mod" .. i]
+                button:ClearAllPoints();
+                if (i == startIndex) then
+                    button:SetPoint("LEFT", self.itemModContainer, "LEFT", 1, 0);
+                    lastButton = button;
+                else
+                    button:SetPoint("LEFT", lastButton, "RIGHT", 1, 0);
+                    lastButton = button;
+                end
+            end
+        end
+
+    else
+        --print("===== NO MODS FOUND ======", self.itemLink);
+    end
+end
 
 
 
@@ -1973,41 +2239,237 @@ end
 FancyPanelsItemSocketMixin = {};
 
 function FancyPanelsItemSocketMixin:OnLoad()
-	self:RegisterForDrag("LeftButton");
-	self:RegisterEvent("SOCKET_INFO_UPDATE");
+	-- self:RegisterForDrag("LeftButton");
+	-- self:RegisterEvent("SOCKET_INFO_UPDATE");
 end
 
-function FancyPanelsItemSocketMixin:SetGem(itemID)
-    self.itemID = itemID;
+function FancyPanelsItemSocketMixin:SetInvSlotID(invSlotID)
+    self.invSlotID = invSlotID;
 end
 
-function FancyPanelsItemSocketMixin:ClickSocketButton()
-	StaticPopup_Hide("DELETE_ITEM");
-	StaticPopup_Hide("DELETE_QUEST_ITEM");
-	StaticPopup_Hide("DELETE_GOOD_ITEM");
-	StaticPopup_Hide("DELETE_GOOD_QUEST_ITEM");
-	C_ItemSocketInfo.ClickSocketButton(self:GetID());
+function FancyPanelsItemSocketMixin:SetGem(gem)
+    self.itemID = gem.id;
+    self.emptySocketTexture = gem.textureFileID;
+
+    if (self.itemID) then
+        local icon = select(5, C_Item.GetItemInfoInstant(gem.id))
+        self:SetNormalTexture(icon);
+    else
+        self:SetNormalTexture(gem.textureFileID);
+    end
 end
 
+function FancyPanelsItemSocketMixin:Reset()
+    self.itemID = nil;
+    self.enchantID = nil;
+    self.invSlotID = nil;
+    self.emptySocketTexture = nil;
+end
+
+--hijack the template for enchant icon
+function FancyPanelsItemSocketMixin:SetEnchant(id)
+    self.enchantID = id;
+end
+
+-- function FancyPanelsItemSocketMixin:ClickSocketButton()
+-- 	StaticPopup_Hide("DELETE_ITEM");
+-- 	StaticPopup_Hide("DELETE_QUEST_ITEM");
+-- 	StaticPopup_Hide("DELETE_GOOD_ITEM");
+-- 	StaticPopup_Hide("DELETE_GOOD_QUEST_ITEM");
+-- 	C_ItemSocketInfo.ClickSocketButton(self:GetID());
+-- end
+
+
+local socketFileIDs = {
+    EMPTY_SOCKET_BLUE = 136256,
+    EMPTY_SOCKET_META = 136257,
+    EMPTY_SOCKET_RED = 136258,
+    EMPTY_SOCKET_YELLOW = 136259,
+    EMPTY_SOCKET_PRISMATIC = 458977,
+}
+
+local SocketColourMapAtlas = {
+    Purple = string.format("%s %s", 
+        CreateSimpleTextureMarkup(socketFileIDs.EMPTY_SOCKET_RED, 18, 18),
+        CreateSimpleTextureMarkup(socketFileIDs.EMPTY_SOCKET_BLUE, 18, 18)
+    ),
+    Green = string.format("%s %s", 
+        CreateSimpleTextureMarkup(socketFileIDs.EMPTY_SOCKET_BLUE, 18, 18),
+        CreateSimpleTextureMarkup(socketFileIDs.EMPTY_SOCKET_YELLOW, 18, 18)
+    ),
+    Orange = string.format("%s %s", 
+        CreateSimpleTextureMarkup(socketFileIDs.EMPTY_SOCKET_RED, 18, 18),
+        CreateSimpleTextureMarkup(socketFileIDs.EMPTY_SOCKET_YELLOW, 18, 18)
+    ),
+    Red = string.format("%s      ", 
+        CreateSimpleTextureMarkup(socketFileIDs.EMPTY_SOCKET_RED, 18, 18)
+    ),
+    BLue = string.format("%s      ", 
+        CreateSimpleTextureMarkup(socketFileIDs.EMPTY_SOCKET_BLUE, 18, 18)
+    ),
+    Yellow = string.format("%s      ", 
+        CreateSimpleTextureMarkup(socketFileIDs.EMPTY_SOCKET_YELLOW, 18, 18)
+    ),
+    -- Red = CreateSimpleTextureMarkup(socketFileIDs.EMPTY_SOCKET_RED, 18, 18),
+    -- Blue = CreateSimpleTextureMarkup(socketFileIDs.EMPTY_SOCKET_BLUE, 18, 18),
+    -- Yellow = CreateSimpleTextureMarkup(socketFileIDs.EMPTY_SOCKET_YELLOW, 18, 18),
+}
 function FancyPanelsItemSocketMixin:OnClick()
-	-- if ( IsModifiedClick() ) then
-	-- 	local link = C_ItemSocketInfo.GetNewSocketLink(self:GetID()) or
-	-- 	C_ItemSocketInfo.GetExistingSocketLink(self:GetID());
-	-- 	HandleModifiedItemClick(link);
-	-- else
-	-- 	self:ClickSocketButton();
-	-- end
 
+    if self.enchantID then
+        return;
+    end
+
+    local gems = Util.GetContainerItems({
+        classID = 3,
+    })
+
+    if (#gems > 0) then
+        MenuUtil.CreateContextMenu(self, function(_, root)
+            root:CreateTitle("Select New Gem");
+            root:CreateDivider();
+
+            for _, gem in ipairs(gems) do
+                if (gem.isLocked == false) then
+
+                    local _, _, colour = C_Item.GetItemInfoInstant(gem.link)
+
+                    local buttonText = gem.link;
+                    if SocketColourMapAtlas[colour] then
+                        buttonText = string.format("%s  %s", SocketColourMapAtlas[colour], gem.link);
+                    end
+
+                    local gemButton = root:CreateButton(buttonText, function()
+                        -- if (IsModifiedClick("EXPANDITEM")) then
+                        --     print("EXPAND IF")
+                        --     local itemLocation = ItemLocation:CreateFromEquipmentSlot(self.invSlotID);
+                        --     if C_Item.DoesItemExist(itemLocation) then
+                        --         print("EXISTS IF")
+                        --         SocketInventoryItem(self.invSlotID);
+                        --     end
+                        --     return;
+                        -- end
+
+                        -- local parentID = self:GetParent():GetID();
+                        -- print(parentID, self.invSlotID);
+
+                        --[[
+                                                    C_Container.PickupContainerItem(bag, slot)
+                                ClickSocketButton(self:GetID());
+                                AcceptSockets()
+                                HideUIPanel(ItemSocketingFrame)
+                        ]]
+
+
+                        --SocketInventoryItem(self.invSlotID);
+                        --C_Container.PickupContainerItem(gem.bag, gem.slot)
+                        --self:OnEnter_Click();
+
+                        --[[
+                            So to make this fluid we want to let the user just click a gem from their bags and socket it
+                            probably with 1 dialog check/confirm (maybe setup a config to bypass this?)
+
+                            To get going we need to get the ItemSocketingFrame shown and init'd for the InvSlot item
+                            maybe also just temp move it off screen?
+
+                            Then apply the new gem and confirm - easy right !!!
+                        ]]
+
+                        self:SocketContextMenuButton_OnClick(gem)
+                    end)
+                    gemButton:SetTooltip(function()
+                        GameTooltip:SetHyperlink(gem.link);
+                    end)
+                end
+            end
+        end)
+    end
 
 end
 
-function FancyPanelsItemSocketMixin:OnReceiveDrag()
-	self:ClickSocketButton();
+function FancyPanelsItemSocketMixin:SocketContextMenuButton_OnClick(gem)
+
+    SocketInventoryItem(self.invSlotID);
+
+    ItemSocketingFrame:ClearAllPoints();
+    ItemSocketingFrame:SetPoint("RIGHT", UIParent, "LEFT", -10, 0);
+
+    C_Container.PickupContainerItem(gem.bag, gem.slot);
+    ClickSocketButton(self:GetID());
+
+    --C_ItemSocketInfo.CloseSocketInfo();
+    --local gemColor = C_ItemSocketInfo.GetSocketTypes(self:GetID());
+    --print(gemColor)
+    local newSocket, newIcon, newMatchesColour = C_ItemSocketInfo.GetNewSocketInfo(self:GetID());
+    local existingSocket, oldIcon, oldMatchesColour = C_ItemSocketInfo.GetExistingSocketInfo(self:GetID());
+    --DevTools_Dump({ newSocket, existingSocket})
+
+    local confirmChanges = SavedVars:Get("characterModel.confirmSocketChanges");
+
+    if (confirmChanges == true) then
+        
+        local function SocketGem_OnChanged(icon)
+            self:SetNormalTexture(icon);
+            self.pendingChangePulse:Play();
+        end
+
+        local function SocketGem_OnCancel()
+            self.pendingChangePulse:Stop();
+            if oldIcon then
+                self:SetNormalTexture(oldIcon);
+            else
+                self:SetNormalTexture(self.emptySocketTexture)
+            end
+            GameTooltip:Hide();
+        end
+
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+        if ( newSocket ) then
+            GameTooltip:SetSocketGem(self:GetID());
+            StaticPopup_Show("FANCY_PANELS_CONFIRM_ACCEPT_SOCKETS", 
+            nil, 
+            nil, 
+            { callback = SocketGem_OnCancel }
+            );
+            --StaticPopup_Hide
+
+            SocketGem_OnChanged(newIcon)
+        else
+            GameTooltip:SetExistingSocketGem(self:GetID());
+        end
+        if (newSocket and existingSocket) then
+            ShoppingTooltip1:SetOwner(GameTooltip, "ANCHOR_NONE");
+            ShoppingTooltip1:ClearAllPoints();
+            ShoppingTooltip1:SetPoint("TOPLEFT", "GameTooltip", "TOPRIGHT", 0, -10);
+            ShoppingTooltip1:SetExistingSocketGem(self:GetID(), true);
+            ShoppingTooltip1:Show();
+
+            StaticPopup_Show("FANCY_PANELS_CONFIRM_ACCEPT_SOCKETS", 
+            nil, 
+            nil, 
+            { callback = SocketGem_OnCancel }
+            );
+
+            SocketGem_OnChanged(newIcon)
+
+        end
+        GameTooltip:Show();
+
+    else
+        C_ItemSocketInfo.AcceptSockets();
+        self:SetNormalTexture(newIcon);
+        ItemSocketingFrameCloseButton:Click();
+    end
+
 end
 
-function FancyPanelsItemSocketMixin:OnDragStart()
-	self:ClickSocketButton();
-end
+-- function FancyPanelsItemSocketMixin:OnReceiveDrag()
+-- 	self:ClickSocketButton();
+-- end
+
+-- function FancyPanelsItemSocketMixin:OnDragStart()
+-- 	self:ClickSocketButton();
+-- end
 
 function FancyPanelsItemSocketMixin:OnEnter()
     if self.itemID then
@@ -2015,29 +2477,84 @@ function FancyPanelsItemSocketMixin:OnEnter()
         GameTooltip:SetItemByID(self.itemID);
         GameTooltip:Show();
     end
-	-- local newSocket = C_ItemSocketInfo.GetNewSocketInfo(self:GetID());
-	-- local existingSocket = C_ItemSocketInfo.GetExistingSocketInfo(self:GetID());
-
-	-- GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
-	-- if ( newSocket ) then
-	-- 	GameTooltip:SetSocketGem(self:GetID());
-	-- else
-	-- 	GameTooltip:SetExistingSocketGem(self:GetID());
-	-- end
-	-- if ( newSocket and existingSocket ) then
-	-- 	ShoppingTooltip1:SetOwner(GameTooltip, "ANCHOR_NONE");
-	-- 	ShoppingTooltip1:ClearAllPoints();
-	-- 	ShoppingTooltip1:SetPoint("TOPLEFT", "GameTooltip", "TOPRIGHT", 0, -10);
-	-- 	ShoppingTooltip1:SetExistingSocketGem(self:GetID(), true);
-	-- 	ShoppingTooltip1:Show();
-	-- end
+    if self.enchantID and addon.ENCHANT_EFFECT_DATA[self.enchantID] and addon.ENCHANT_EFFECT_DATA[self.enchantID].effect1 then
+        GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT");
+        --GameTooltip:SetSpellByID(addon.ENCHANT_EFFECT_DATA[self.enchantID].effect1);
+        GameTooltip:AddLine(addon.ENCHANT_EFFECT_DATA[self.enchantID].name);
+        GameTooltip:Show();
+    end
 end
 
 
 function FancyPanelsItemSocketMixin:OnEvent(event, ...)
-	if ( event == "SOCKET_INFO_UPDATE" ) then
-		if ( GameTooltip:IsOwned(self) ) then
-			self:OnEnter();
-		end
-	end
+    -- if (event == "SOCKET_INFO_UPDATE") then
+    --     if (GameTooltip:IsOwned(self)) then
+    --         self:OnEnter();
+    --     end
+    -- end
+end
+
+
+
+
+
+local RepTotals = {
+    [0] = -21000,
+    [1] = -12000,
+    [2] = -6000,
+    [3] = -3000,
+    [4] = 0,
+    [5] = 3000,
+    [6] = 6000,
+    [7] = 12000,
+    [8] = 21000,
+}
+
+local StandingColours = {
+    [1] = CreateColorFromHexString("ffcc0000"),
+    [2] = CreateColorFromHexString("ffff0000"),
+    [3] = CreateColorFromHexString("fff26000"),
+    [4] = CreateColorFromHexString("ffe4e400"),
+    [5] = CreateColorFromHexString("ff33ff33"),
+    [6] = CreateColorFromHexString("ff5fe65d"),
+    [7] = CreateColorFromHexString("ff53e9bc"),
+    [8] = CreateColorFromHexString("ff2ee6e6"),
+}
+
+
+
+FancyPanelsRepDialMixin = {}
+function FancyPanelsRepDialMixin:InitRep(rep)
+
+    if addon.Constants.RepIcons[rep.factionID] then
+        self:SetIcon(addon.Constants.RepIcons[rep.factionID]);
+    else
+        self:SetIcon("PhotosensitivityWarning-questbang-icon");
+    end
+
+    local r, g, b = 1, 1, 1;
+    if StandingColours[rep.standingId] then
+        r, g, b = StandingColours[rep.standingId]:GetRGB();
+    end
+    self:SetColour(r,g,b);
+
+    self:SetValue(rep.currentValue, rep.maxValue, true);
+
+    self.header:SetText(rep.factionName);
+
+    self:SetScript("OnEnter", function()
+        GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT");
+        GameTooltip:AddDoubleLine(rep.factionName, _G["FACTION_STANDING_LABEL"..rep.standingId], nil, nil, nil, r, g, b);
+        GameTooltip:AddLine(" ");
+        GameTooltip:AddLine(rep.description, 1,1,1, true);
+        GameTooltip:AddLine(" ");
+
+        if not GameTooltip.progressBarPool then
+            GameTooltip.progressBarPool = CreateFramePool("FRAME", GameTooltip, "TooltipProgressBarTemplate");
+        end
+
+        GameTooltip_AddProgressBar(GameTooltip, RepTotals[rep.standingId - 1], rep.maxValue, rep.currentValue, string.format("%0.1f %%", (rep.currentValue / rep.maxValue) * 100))
+        GameTooltip:Show();
+    end)
+
 end

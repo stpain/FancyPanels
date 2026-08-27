@@ -612,7 +612,12 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
                         <Size x="32" y="32"/>
                         <NormalTexture atlas="common-button-square-gray-up"/>
                         <PushedTexture atlas="common-button-square-gray-down"/>
-                        <HighlightTexture atlas="Forge-ColorSwatchSelection"/>
+                        <HighlightTexture atlas="WoWShare-Highlight">
+                            <Anchors>
+                                <Anchor point="TOPLEFT" x="5" y="-5"/>
+                                <Anchor point="BOTTOMRIGHT" x="-5" y="5"/>
+                            </Anchors>
+                        </HighlightTexture>
                          <Layers>
                             <Layer level="OVERLAY">
                                 <Texture atlas="OptionsIcon-Brown">
@@ -688,6 +693,11 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
                                     <Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" x="260" y="0"/>
                                 </Anchors>
                             </Button>
+                            <Button parentKey="tab4" parentArray="tabs" id="4" inherits="FancyPanelsTopTabButtonTemplate">
+                                <Anchors>
+                                    <Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" x="380" y="0"/>
+                                </Anchors>
+                            </Button>
 
                             <Frame parentKey="stats" parentArray="views">
                                 <Anchors>
@@ -695,10 +705,59 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
                                     <Anchor point="BOTTOMRIGHT" x="-50" y="50"/>
                                 </Anchors>
 
+                                <Layers>
+                                    <Layer level="OVERLAY">
+                                        <FontString parentKey="healthLabel" inherits="GameFontNormal" text="HEALTH">
+                                            <Anchors>
+                                                <Anchor point="TOPLEFT" x="10" y="10"/>
+                                            </Anchors>
+                                            <Size y="22"/>
+                                        </FontString>
+                                        <Texture>
+                                            <Size x="205" y="1"/>
+                                            <Color color="WHITE_FONT_COLOR"/>
+                                            <Gradient orientation="HORIZONTAL">
+                                                <MinColor r="0.5" g="0.5" b="0.5" a="1"/>
+                                                <MaxColor r="0.5" g="0.5" b="0.5" a="0.05"/>
+                                            </Gradient>
+                                            <Anchors>
+                                                <Anchor point="TOPLEFT" relativeKey="$parent.healthLabel" relativePoint="BOTTOMLEFT" x="0" y="0"/>
+                                            </Anchors>
+                                        </Texture>
+                                        <FontString parentKey="health" inherits="GameFontWhite" justifyH="RIGHT">
+                                            <Anchors>
+                                                <Anchor point="TOPRIGHT" relativePoint="TOPLEFT" x="215" y="10"/>
+                                            </Anchors>
+                                        </FontString>
+                                        <FontString parentKey="powerLabel" inherits="GameFontNormal" text="POWER">
+                                            <Anchors>
+                                                <Anchor point="TOPLEFT" x="255" y="10"/>
+                                            </Anchors>
+                                            <Size y="22"/>
+                                        </FontString>
+                                        <FontString parentKey="power" inherits="GameFontWhite" justifyH="RIGHT">
+                                            <Anchors>
+                                                <Anchor point="TOPRIGHT" relativePoint="TOPLEFT" x="460" y="10"/>
+                                            </Anchors>
+                                        </FontString>
+                                        <Texture>
+                                            <Size x="205" y="1"/>
+                                            <Color color="WHITE_FONT_COLOR"/>
+                                            <Gradient orientation="HORIZONTAL">
+                                                <MinColor r="0.5" g="0.5" b="0.5" a="1"/>
+                                                <MaxColor r="0.5" g="0.5" b="0.5" a="0.05"/>
+                                            </Gradient>
+                                            <Anchors>
+                                                <Anchor point="TOPLEFT" relativeKey="$parent.powerLabel" relativePoint="BOTTOMLEFT" x="0" y="0"/>
+                                            </Anchors>
+                                        </Texture>
+                                    </Layer>
+                                </Layers>
+
                                 <Frames>
                                     <Frame parentKey="baseStats">
                                         <Anchors>
-                                            <Anchor point="TOPLEFT" x="10" y="-15"/>
+                                            <Anchor point="TOPLEFT" x="10" y="-55"/>
                                         </Anchors>
                                         <Size x="205" y="180"/>
                                         <Layers>
@@ -841,6 +900,51 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
                                 </Frames>
                             </Frame>
 
+
+                            <Frame parentKey="reputations" parentArray="views">
+                                <Anchors>
+                                    <Anchor point="TOPLEFT" x="20" y="-20"/>
+                                    <Anchor point="BOTTOMRIGHT" x="-20" y="20"/>
+                                </Anchors>
+
+                                <Layers>
+                                    <Layer level="OVERLAY">
+                                        <FontString parentKey="headerLabel" inherits="GameFontNormalHuge">
+                                            <Anchors>
+                                                <Anchor point="TOPLEFT" x="45" y="-24"/>
+                                            </Anchors>
+                                        </FontString>
+                                    </Layer>
+                                </Layers>
+
+                                <Frames>
+
+                                    <Button parentKey="headerDropDown">
+                                        <NormalTexture atlas="charactercreate-customize-dropdownbox"/>
+                                        <PushedTexture atlas="charactercreate-customize-dropdownbox-open"/>
+                                        <HighlightTexture atlas="charactercreate-customize-dropdownbox-hover"/>
+                                        <Anchors>
+                                            <Anchor point="TOPRIGHT" x="-30" y="-10"/>
+                                        </Anchors>
+                                        <Size x="150" y="38"/>
+                                    </Button>
+
+                                    <Frame parentKey="scrollBox" inherits="WowScrollBoxList">
+                                        <!-- <Size x="470" y="367"/> -->
+                                        <Anchors>
+                                            <Anchor point="TOPLEFT" x="40" y="-70"/>
+                                            <Anchor point="BOTTOMRIGHT" x="-40" y="50"/>
+                                        </Anchors>
+                                    </Frame>
+                                    <EventFrame parentKey="scrollBar" inherits="MinimalScrollBar">
+                                        <Anchors>
+                                            <Anchor point="TOPLEFT" relativeKey="$parent.scrollBox" relativePoint="TOPRIGHT" x="12" y="-6"/>
+                                            <Anchor point="BOTTOMLEFT" relativeKey="$parent.scrollBox" relativePoint="BOTTOMRIGHT" x="12" y="-4"/>
+                                        </Anchors>
+                                    </EventFrame>
+                                </Frames>
+                            </Frame>
+
                         </Frames>
                     </Frame>
                 </Frames>
@@ -864,6 +968,12 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
                 </Layers>
 
                 <Frames>
+                    <Button parentKey="nuke" inherits="UIPanelButtonTemplate" text="RESET">
+                        <Anchors>
+                            <Anchor point="TOPRIGHT" x="-30" y="-30"/>
+                        </Anchors>
+                        <Size x="100" y="24"/>
+                    </Button>
                     <Frame parentKey="changeLog" inherits="ScrollingFontTemplate">
                         <Anchors>
                             <Anchor point="TOPLEFT" x="60" y="-60"/>
