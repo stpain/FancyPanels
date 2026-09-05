@@ -10,6 +10,8 @@
 
 local name, addon = ...;
 
+local SavedVars = addon.SavedVars;
+
 local talentFilePath = "Interface/AddOns/FancyPanels/Media/Talents";
 local talentFilePrefix = "TalentsClassBackground";
 
@@ -65,6 +67,14 @@ function Util.tableMoveDown(tbl, i)
     Util.tableSwap(tbl, i, i + 1)
 end
 
+function Util.tableContains(tbl, val)
+    for k, v in pairs(tbl) do
+        if (v == val) then
+            return true;
+        end
+    end
+    return false;
+end
 
 function Util.GetSpecDesc(classID, tabID)
 
@@ -131,10 +141,10 @@ function Util.GetClassData(classID)
                 backgroundFilePath = bg1,
                 backgroundAtlas = {0.00048828125, 0.78759765625, 0.00048828125, 0.37841796875},
             },
-            {
-                backgroundFilePath = bg1,
-                backgroundAtlas = {0.00048828125, 0.78759765625, 0.37939453125, 0.75732421875},
-            },
+            -- {
+            --     backgroundFilePath = bg1,
+            --     backgroundAtlas = {0.00048828125, 0.78759765625, 0.37939453125, 0.75732421875},
+            -- },
             -- {
             --     backgroundFilePath = bg2,
             --     backgroundAtlas = {0.00048828125, 0.78759765625, 0.00048828125, 0.37841796875},
@@ -145,10 +155,46 @@ function Util.GetClassData(classID)
             },
         }
 
+        local bear = {
+            backgroundFilePath = bg2,
+            backgroundAtlas = {0.00048828125, 0.78759765625, 0.00048828125, 0.37841796875},
+        }
+        local cat = {
+            backgroundFilePath = bg1,
+            backgroundAtlas = {0.00048828125, 0.78759765625, 0.37939453125, 0.75732421875},
+        }
+
+        local activeSpecGroup = C_SpecializationInfo.GetActiveSpecGroup(false, false);
+        local specOption = SavedVars:Get(string.format("specializations.druidSpec%s", activeSpecGroup))
+
+        if (specOption == "Bear") then
+            table.insert(specs, 2, bear);
+        end
+        if (specOption == "Cat") then
+            table.insert(specs, 2, cat);
+        end
+        if (specOption == "") then
+            table.insert(specs, 2, cat);
+        end
+
         for i = 1, 3 do
             --local id, name, desc, fileID, x, classSpec, y = GetTalentTabInfo(i)
             local id, name, description, icon, role, primaryStat, pointsSpent, background, previewPointsSpent, isUnlocked = C_SpecializationInfo.GetSpecializationInfo(i, false, false, nil, nil, 1);
-            local atlas = specThumbnails[background:lower()]
+            
+            local atlas;
+            if (i == 2) then
+                if (specOption == "Bear") then
+                    atlas = specThumbnails.druidguardian;
+                end
+                if (specOption == "Cat") then
+                    atlas = specThumbnails.druidferalcombat;
+                end
+                if (specOption == "") then
+                    atlas = specThumbnails.druidferalcombat;
+                end
+            else
+                atlas = specThumbnails[background:lower()]
+            end
 
             specs[i].tabID = i;
             specs[i].specID = id;
@@ -219,7 +265,7 @@ function Util.GetClassSampleTalents(classID, specID)
 
     local sample1, sample2;
 
-    if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then
+    if (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC) then
 
         sample1Row, sample2Row = 4, 6; --adjust for smaller trees
 
@@ -234,7 +280,7 @@ function Util.GetClassSampleTalents(classID, specID)
         sample1 = Util.GetTalentData(classID, specID, sample1Row, sample1Col);
         sample2 = Util.GetTalentData(classID, specID, sample2Row, sample2Col);
         
-    elseif WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC then
+    elseif (WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC) then
 
         if (classID == 7) and (specID == 263) then
             sample1Col = 2; --stormstrike is better than dual weild
@@ -510,6 +556,46 @@ function Util.IconPicker_Update(frame)
 end
 
 
+function Util.ScanTooltip(link, bag, slot, strMatch) --ITEM_SPELL_CHARGES = "%d |4Charge:Charges;"; local charges = str:match("^(%d+) Charges$")
+
+    if bag and slot then
+        FancyPanelsScanningTooltip:SetBagItem(bag, slot);    
+    end
+    
+
+    --FancyPanelsScanningTooltip:ClearLines();
+    --FancyPanelsScanningTooltip:Show()
+    -- local textLines = {};
+    -- local regions = {FancyPanelsScanningTooltip:GetRegions()}
+    -- for k, region in ipairs(regions) do
+    --     if region:IsObjectType("FontString") then
+    --         local line = region:GetText();
+    --         print(k, line)
+    --         if (line) then
+    --             local charges = line:match(tooltipText);
+    --             print(charges)
+    --             if (charges) then
+    --                 print(link, charges);
+    --             end
+
+    --         end
+    --         table.insert(textLines, region:GetText())
+    --     end
+    -- end
+    -- return textLines
+
+    for i = 1, FancyPanelsScanningTooltip:NumLines() do
+        local left = _G["FancyPanelsScanningTooltipTextLeft"..i];
+        local text = left:GetText();
+        --print(i, text);
+
+        local x = string.match(text, strMatch); -- ITEM_SPELL_CHARGES)
+        if x then
+            return x;
+        end
+        
+    end
+end
 
 
 function Util.GetContainerItemsForInvSlot(equipLoc, invType, invSlotId)
@@ -545,9 +631,23 @@ local ItemInfoInstantKeyMap = {
     classID = 6,
     subClassID = 7,
 }
-function Util.GetContainerItems(search)
+function Util.GetContainerItems(itemInfoInstantKeys, itemIdLookup)
 
     local ret = {};
+
+    -- for i = 1, NUM_CONTAINER_FRAMES do
+    --     local bagFrame = _G["ContainerFrame"..i];
+    --     local name = bagFrame:GetName();
+    --     local numSlots = C_Container.GetContainerNumSlots(bagFrame:GetID())
+    --     print(name, numSlots);
+    --     for j = 1, numSlots, 1 do
+    --         local slotButton = _G[name.."Item"..j];
+    --         local link = C_Container.GetContainerItemLink(bagFrame:GetID(), slotButton:GetID());
+    --         if link then
+    --             print("Got", link, "at position", bagFrame:GetID(), slotButton:GetID());
+    --         end
+    --     end
+    -- end
 
     for bag = 0, 4 do
         for slot = 1, C_Container.GetContainerNumSlots(bag) do
@@ -557,19 +657,36 @@ function Util.GetContainerItems(search)
                 local slotInfo = C_Container.GetContainerItemInfo(bag, slot)
                 --local itemID, itemType, itemSubType, _equipLoc, icon, class, subClass = C_Item.GetItemInfoInstant(link);
                 local info = {C_Item.GetItemInfoInstant(link)};
-                for k, v in pairs(search) do
-                    if info[ItemInfoInstantKeyMap[k]] ~= v then
-                        isMatch = false;
+
+                -- if (info[1] == 2862) then
+                --     DevTools_Dump({info})
+                -- end
+
+                if type(itemInfoInstantKeys) == "table" then
+                    for k, v in pairs(itemInfoInstantKeys) do
+                        if info[ItemInfoInstantKeyMap[k]] ~= v then
+                            isMatch = false;
+                        end
                     end
                 end
+
+                if type(itemIdLookup) == "table" then
+                    isMatch = Util.tableContains(itemIdLookup, info[1]);
+                end
+
                 if isMatch == true then
                     table.insert(ret, {
                         bag = bag,
                         slot = slot,
                         link = link,
+                        itemID = info[1],
                         isLocked = slotInfo.isLocked,
                     });
+
+                    --local x = C_Spell.GetSpellCharges(link);
+                    --print("Charges", x)
                     --DevTools_Dump(info)
+                    --print("Added", link, info[6], info[7]);
                 end
             end
         end

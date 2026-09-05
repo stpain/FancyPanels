@@ -302,7 +302,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
                 </Anchors>
             </Frame>
 
-            <Button parentKey="activate" inherits="UIPanelButtonTemplate" hidden="true">
+            <Button parentKey="options" inherits="UIPanelButtonTemplate" text="OPTIONS" hidden="true">
                 <Size x="180" y="22"/>
                 <Anchors>
                     <Anchor point="BOTTOM" x="0" y="50"/>
@@ -598,6 +598,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
             <OnLoad method="OnLoad"/>
             <OnClick method="OnClick"/>
             <OnEvent method="OnEvent"/>
+            <OnEnter method="OnEnter"/>
             <OnLeave>
                 GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
             </OnLeave>
@@ -654,4 +655,43 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
             </OnLeave>
         </Scripts>
     </Frame>
+
+    <Frame name="ContextMenuCheckbox" virtual="true">
+        <Frames>
+            <CheckButton parentKey="Checkbox" inherits="ChatConfigCheckButtonTemplate">
+                <CheckedTexture atlas="orderhalltalents-done-checkmark"/>
+                <Size x="26" y="26"/>
+                <Anchors>
+                    <Anchor point="LEFT" x="2" y="0"/>
+                </Anchors>
+                <HitRectInsets left="0" right="-10"/>
+                <Layers>
+                    <Layer level="OVERLAY">
+                        <FontString parentKey="label" inherits="GameFontNormal" justifyH="LEFT">
+                            <Size x="160" y="26"/>
+                            <Anchors>
+                                <Anchor point="LEFT" x="26" y="0"/>
+                            </Anchors>
+                        </FontString>
+                    </Layer>
+                </Layers>
+            </CheckButton>
+        </Frames>
+    </Frame>
+
+    <Button name="FancyPanelsSecureActionButton" enableMouse="true" inherits="InsecureActionButtonTemplate" registerForClicks="AnyDown,AnyUp" virtual="true">
+        <!-- <Attributes>
+            <Attribute name="type1" value="macro"/>
+        </Attributes> -->
+        <Layers>
+            <Layer level="OVERLAY">
+                <FontString parentKey="text" inherits="GameFontNormal" justifyH="LEFT">
+                    <Anchors>
+                        <Anchor point="TOPLEFT"/>
+                        <Anchor point="BOTTOMRIGHT"/>
+                    </Anchors>
+                </FontString>
+            </Layer>
+        </Layers>
+    </Button>
 </Ui>

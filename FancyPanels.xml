@@ -16,6 +16,14 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
         </Anchors>
     </Button> -->
 
+    <GameTooltip name="FancyPanelsScanningTooltip" hidden="true" inherits="SharedTooltipTemplate">
+        <Scripts>
+            <OnLoad inherit="prepend">
+                self:SetOwner(WorldFrame, "ANCHOR_NONE")
+            </OnLoad>
+        </Scripts>
+    </GameTooltip>
+
     <Frame name="FancyPanels" mixin="FancyPanelsMixin" inherits="PortraitFrameTemplate" dontSavePosition="true" parent="UIParent" frameStrata="HIGH" enableMouse="true" movable="true" hidden="true">
 
         <Size x="1300" y="750"/>
@@ -534,7 +542,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
                             </Anchors>
                             <Size x="200"/>
                         </FontString>
-                        <FontString parentKey="class" inherits="GameFontNormal">
+                        <FontString parentKey="class" inherits="GameFontNormal" hidden="true">
                             <Anchors>
                                 <Anchor point="TOP" relativeKey="$parent.name" relativePoint="BOTTOM" x="0" y="-5"/>
                             </Anchors>
@@ -545,9 +553,16 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
 
                 <Frames>
 
+                    <Frame parentKey="levelRing" inherits="FancyPanelsRepDialTemplate">
+                        <Anchors>
+                            <Anchor point="TOPLEFT" x="50" y="-70"/>
+                        </Anchors>
+                        <Size x="120" y="120"/>
+                    </Frame>
+
                     <Frame parentKey="outfitList" inherits="TBDListviewTemplate">
                         <Anchors>
-                            <Anchor point="TOPLEFT" x="10" y="-140"/>
+                            <Anchor point="TOPLEFT" x="10" y="-260"/>
                             <Anchor point="BOTTOMLEFT" x="10" y="120"/>
                         </Anchors>
                         <Size x="200"/>
@@ -555,6 +570,28 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
                             <KeyValue key="itemTemplate" value="FancyPanelsOutfitListItemTemplate" type="string"/>
                             <KeyValue key="elementHeight" value="42" type="number"/>
                         </KeyValues>
+                        <Layers>
+                            <Layer level="OVERLAY">
+                                <Texture atlas="UI-LFG-DividerLine">
+                                    <!-- <Color color="WHITE_FONT_COLOR"/>
+                                    <Gradient orientation="HORIZONTAL">
+                                        <MinColor color="GREY_FONT_COLOR"/>
+                                        <MaxColor r="0.5" g="0.5" b="0.5" a="0.05"/>
+                                    </Gradient> -->
+                                    <Anchors>
+                                        <Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" y="2"/>
+                                        <Anchor point="BOTTOMRIGHT" relativePoint="TOPRIGHT" y="2"/>
+                                    </Anchors>
+                                    <Size y="1"/>
+                                </Texture>
+                                <FontString inherits="GameFontNormal" text="EQUIPMENT_MANAGER">
+                                    <Anchors>
+                                        <Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" y="6"/>
+                                        <Anchor point="BOTTOMRIGHT" relativePoint="TOPRIGHT" y="6"/>
+                                    </Anchors>
+                                </FontString>
+                            </Layer>
+                        </Layers>
                     </Frame>
 
                     <Frame parentKey="iconSelector" inherits="IconSelectorPopupFrameTemplate" frameStrata="HIGH" enableMouse="true" hidden="true"/>

@@ -1,0 +1,11 @@
+<Bindings>
+    <Binding name="Talents" category="Fancy Panels">
+        FancyPanels_Show(2)
+    </Binding>
+    <Binding name="Spellbook" category="Fancy Panels">
+        FancyPanels_Show(3)
+    </Binding>
+    <Binding name="Character" category="Fancy Panels">
+        FancyPanels_Show(4)
+    </Binding>
+</Bindings>

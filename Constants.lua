@@ -135,12 +135,19 @@ addon.Constants.RepIcons = {
     -- [946] = 134502, --honor hold
     -- [970] = 132371, -- sporeagar
 
-    [930] = 236715, -- exodar
-    [69] = 236740, -- darnassus
+    [930] = 135756, -- exodar
+    [69] = 135755, -- darnassus
     [1134] = 462338, -- gilneas
-    [54] = 255139, --gnomergan
-    [47] = 236805, --ironforge
-    [72] = 236761, --elwynn
+    [54] = 135757, --gnomergan
+    [47] = 135757, --ironforge
+    [72] = 135763, --stormwind
+
+
+    [68] = 135766, --undercity
+    [76] = 135759, --org
+    [81] = 135765,--thunder
+    [530] = 135759, --darkspear
+    [911] = 135761, --silvermoon
 
     -- [933] = 1711338, --consortium
     -- [932] = 134552, --aldor

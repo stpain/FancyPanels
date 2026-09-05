@@ -15,6 +15,9 @@ addon.Callbacks = {
     SavedVariables_OnReset = "SAVED_VARIABLES_ON_RESET",
     SavedVariables_OnChanged = "SAVED_VARS_ON_CHANGED",
 
+    CharacterOptions_OnChanged = "CHARACTER_OPTIONS_ON_CHANGED",
+    SpecializationOptions_OnChanged = "SPEC_OPTIONS_ON_CHANGED",
+
     -- Specialization_OnSelected = "ON_SPECIALIZATION_SELECTED",
 
     -- Talent_OnPreviewPointsChanged = "ON_TALENT_PREVIEW_POINTS_CHANGED",

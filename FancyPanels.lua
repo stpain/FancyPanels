@@ -52,7 +52,7 @@ FancyPanelsMixin = {}
 
 function FancyPanelsMixin:OnLoad()
 
-    FancyPanelsPortrait:SetAtlas("newplayerchat-chaticon-newcomer");
+    tinsert(UISpecialFrames, self:GetName());
 
     C_AddOns.LoadAddOn("Blizzard_TalentUI");
     ShowUIPanel(PlayerTalentFrame);
@@ -242,6 +242,7 @@ function FancyPanelsMixin:OnLoad()
 
     addon.CallbackRegistry:RegisterCallback(addon.Callbacks.CharacterEquipmentSet_OnDeleted, self.CharacterEquipmentSet_OnDeleted, self);
     addon.CallbackRegistry:RegisterCallback(addon.Callbacks.CharacterEquipmentSet_OnEdit, self.CharacterEquipmentSet_OnEdit, self);
+    addon.CallbackRegistry:RegisterCallback(addon.Callbacks.SpecializationOptions_OnChanged, self.SpecializationOptions_OnChanged, self);
 end
 
 function FancyPanelsMixin:SetView(tabID)
@@ -250,6 +251,15 @@ function FancyPanelsMixin:SetView(tabID)
     end
     self.views[tabID]:Show()
     PanelTemplates_SetTab(self, tabID);
+end
+
+function FancyPanels_Show(tabID)
+    if (FancyPanels:IsShown()) then
+        FancyPanels:Hide();
+        return;
+    end
+    FancyPanels:SetView(tabID);
+    FancyPanels:Show();
 end
 
 function FancyPanelsMixin:OnEvent(event, ...)
@@ -262,6 +272,11 @@ function FancyPanelsMixin:OnShow()
     local isPreviewTalentsEnabled = C_CVar.GetCVar("previewTalentsOption");
     self.talentTreesParent.togglePreviewTalents:SetChecked(isPreviewTalentsEnabled)
     self:TogglePreviewTalentPoints(isPreviewTalentsEnabled);
+
+    if (self:HasPortraitTexture() == nil) then
+        local _, class = UnitClass("player");
+        self:GetPortrait():SetAtlas(string.format("classicon-%s", class:lower()));
+    end
 end
 
 
@@ -273,6 +288,7 @@ end
 ]]
 function FancyPanelsMixin:PLAYER_LEVEL_UP(...)
     local level, healthDelta, powerDelta, numNewTalents, numNewPvpTalentSlots, strengthDelta, agilityDelta, staminaDelta, intellectDelta = ...;
+    self:Character_UpdateLevel();
 end
 
 function FancyPanelsMixin:CHARACTER_POINTS_CHANGED(...)
@@ -290,8 +306,10 @@ function FancyPanelsMixin:PLAYER_ENTERING_WORLD(...)
 
         local _, class, classID = UnitClass("player");
         self:InitializeClass(classID);
+
         self:SpellbookTab_OnSelected(1);
         self:CharacterTab_OnSelected(1);
+        
         self:CreateMinimapButton();
 
         self:Character_InitModel();
@@ -299,6 +317,8 @@ function FancyPanelsMixin:PLAYER_ENTERING_WORLD(...)
         self:Character_InitInvSlots();
 
         self:UpdateOutfitList();
+
+        self:Character_UpdateLevel();
 
     end
 end
@@ -450,6 +470,7 @@ function FancyPanelsMixin:SetScripts_TalentTrees()
 end
 
 function FancyPanelsMixin:SetScripts_Character()
+
     self.character.newOutfit.text:SetText(TRANSMOG_OUTFIT_NEW)
     self.character.newOutfit:SetScript("OnClick", function()
 
@@ -491,6 +512,7 @@ function FancyPanelsMixin:SetScripts_Character()
         local currentValue = SavedVars:Get(key);
         --print("currentValue", currentValue);
         SavedVars:Set(key, not currentValue);
+        addon.CallbackRegistry:TriggerEvent(addon.Callbacks.CharacterOptions_OnChanged)
         --print("newValue", not currentValue);
 
         --DevTools_Dump({SavedVars.db})
@@ -656,6 +678,13 @@ end
 --[[
     UI Funcs:
 ]]
+
+--re init the UI to apply the correct druid feral specs
+function FancyPanelsMixin:SpecializationOptions_OnChanged()
+    local _, class, classID = UnitClass("player");
+    self:InitializeClass(classID);
+end
+
 function FancyPanelsMixin:InitializeClass(classID)
 
     local activeSpecGroup = C_SpecializationInfo.GetActiveSpecGroup(false, false);
@@ -806,6 +835,7 @@ function FancyPanelsMixin:UpdateSpecializationInfo()
 
     else
 
+        --self.PortraitContainer.portrait
         FancyPanelsPortrait:SetTexture(groupData[1].icon);
         self.talentTreesParent.spec1:Hide();
         self.talentTreesParent.spec2:Hide();
@@ -1122,9 +1152,7 @@ function FancyPanelsMixin:CharacterTab_OnSelected(tabID)
     self[CharacterTabsMenu[tabID]](self)
 end
 
-function FancyPanelsMixin:UpdateCharacterModel()
-    self.character.class:SetText(string.format("%s %d %s", LEVEL, UnitLevel("player"), UnitClass("player")));
-    
+function FancyPanelsMixin:UpdateCharacterModel()    
     --[[
         There is a better way to do this
     ]]
@@ -1133,10 +1161,38 @@ function FancyPanelsMixin:UpdateCharacterModel()
     end)
 end
 
+function FancyPanelsMixin:Character_UpdateLevel()
+    self.character.levelRing.header:SetText(string.format("%s %d %s", LEVEL, UnitLevel("player"), UnitClass("player")));
+    --self.character.class:SetText(string.format("%s %d %s", LEVEL, UnitLevel("player"), UnitClass("player")));
+end
+
 function FancyPanelsMixin:Character_InitModel()
 
-    self.character.name:SetText(RAID_CLASS_COLORS[select(2, UnitClass("player"))]:WrapTextInColorCode(UnitName("player")));
-    self.character.class:SetText(string.format("%s %d %s", LEVEL, UnitLevel("player"), UnitClass("player")));
+    local engClass = select(2, UnitClass("player"))
+    local classColour = RAID_CLASS_COLORS[engClass];
+    local ccR, ccG, ccB = classColour:GetRGB();
+
+    local function UpdateXP(ring)
+        local playerCurrXP = UnitXP("player");
+        local playerMaxXP = UnitXPMax("player");
+        --local exhaustionThreshold = GetXPExhaustion();
+        --local exhaustionStateID = GetRestState();
+        ring:SetValue(playerCurrXP, playerMaxXP);
+    end
+
+    self.character.levelRing.header:SetFontObject("GameFontNormal");
+    --self.character.levelRing:SetIcon("ClassHall-Circle-Druid");
+    --self.character.levelRing:SetIcon("classicon-druid");
+    self.character.levelRing:SetColour(ccR, ccG, ccB, 0.8)
+    self.character.levelRing:SetIcon(string.format("ClassTrial-%s-Ring", engClass));
+    self.character.levelRing.icon:SetTexCoord(0.18, 0.82, 0.18, 0.82)
+    self.character.levelRing:RegisterEvent("PLAYER_XP_UPDATE");
+    self.character.levelRing:SetScript("OnEvent", function(ring)
+        UpdateXP(ring)
+    end)
+    UpdateXP(self.character.levelRing);
+
+    self.character.name:SetText(classColour:WrapTextInColorCode(UnitName("player")));
     self.character.model:SetUnit("player");
 
     self.character:RegisterEvent("UNIT_INVENTORY_CHANGED");
@@ -1146,9 +1202,8 @@ function FancyPanelsMixin:Character_InitModel()
     end)
 
     --local _, raceInfo = UnitRace("player");
-    local _, classFile = UnitClass("player");
 
-    self.character.model.background:SetAtlas(string.format("dressingroom-background-%s", classFile:lower()));
+    self.character.model.background:SetAtlas(string.format("dressingroom-background-%s", engClass:lower()));
     --self.character.model.background:SetAtlas(string.format("transmog-background-race-%s", raceInfo:lower()));
 
     --FancyPanelCharacterInvSlotTemplate
@@ -1188,7 +1243,7 @@ function FancyPanelsMixin:Character_InitStats()
     end
 
     if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then
-        return;
+        --return;
     end
 
     lastframe = nil;
@@ -1428,6 +1483,7 @@ function FancyPanelsMixin:Character_InitInvSlots()
         button.invSlotId = invSlotId;
         button.equipLoc = equipLoc;
         button.slotIcon = invSlotInfo.icon;
+        button.tooltipAnchor = tooltipAnchor;
 
         button:SetID(invSlotId);
 
@@ -1435,13 +1491,6 @@ function FancyPanelsMixin:Character_InitInvSlots()
         button.itemLink = GetInventoryItemLink("player", button.invSlotId);
         button:UpdateVisuals();
 
-        button:SetScript("OnEnter", function(b)
-            if b.itemLink then
-                GameTooltip:SetOwner(b, tooltipAnchor);
-                GameTooltip:SetHyperlink(b.itemLink);
-                GameTooltip:Show();
-            end
-        end)
     end
 
 

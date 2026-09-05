@@ -19,6 +19,10 @@ local Defaults = {
         suggestItemUpgrade = false,
         confirmSocketChanges = true,
     },
+    specializations = {
+        druidSpec1 = "",
+        druidSpec2 = "",
+    }
 };
 
 
@@ -86,11 +90,11 @@ function SavedVars:Set(key, val)
         self.db[k1][k2] = val;
         --print("db val", self.db[k1][k2])
 
-        addon.CallbackRegistry:TriggerEvent(addon.Callbacks.SavedVariables_OnChanged, k1, k2, val)
+        --addon.CallbackRegistry:TriggerEvent(addon.Callbacks.SavedVariables_OnChanged, k1, k2, val)
     else
         self.db[key] = val;
 
-        addon.CallbackRegistry:TriggerEvent(addon.Callbacks.SavedVariables_OnChanged, key, val)
+        --addon.CallbackRegistry:TriggerEvent(addon.Callbacks.SavedVariables_OnChanged, key, val)
     end
 end
 

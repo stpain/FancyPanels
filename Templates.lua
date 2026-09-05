@@ -210,13 +210,93 @@ end
 
 
 
+local function SetSpec(spec, val, trigger)
+    SavedVars:Set(string.format("specializations.druidSpec%s", spec), val);
+    if (trigger == true) then
+        addon.CallbackRegistry:TriggerEvent(addon.Callbacks.SpecializationOptions_OnChanged, spec)
+    end
+end
 
+local function GetSpec(spec)
+    return SavedVars:Get(string.format("specializations.druidSpec%s", spec))
+end
 
+local function InitFeralDruidOptions(button)
+    
+    local specOptions = {"Bear", "Cat"};
+    MenuUtil.CreateContextMenu(button, function(_, root)
+        root:CreateTitle("Select Feral Specializations");
+        root:CreateDivider();
+        root:CreateTitle("Spec 1");
+
+        for k, v in ipairs(specOptions) do
+            local checkbox = root:CreateTemplate("ContextMenuCheckbox");
+            checkbox:AddInitializer(function(frame)
+                frame:SetSize(180, 26);
+                frame.Checkbox.label:SetText(v);
+                frame.Checkbox:SetChecked(GetSpec(1) == v and true or false);
+                frame.Checkbox:SetScript("OnClick", function(cb)
+                    if (cb:GetChecked() == true) then
+                        SetSpec(1, v, true);
+                    else
+                        SetSpec(1, "", true);
+                    end
+                end)
+                addon.CallbackRegistry:RegisterCallback(addon.Callbacks.SpecializationOptions_OnChanged, function(_, spec)
+                    --print("callback",spec)
+                    if (spec == 1) then
+                        frame.Checkbox:SetChecked(GetSpec(1) == v and true or false);
+                    end
+                end);
+            end)
+        end
+
+        root:CreateDivider();
+        root:CreateTitle("Spec 2");
+
+        for k, v in ipairs(specOptions) do
+            local checkbox = root:CreateTemplate("ContextMenuCheckbox");
+
+            checkbox:AddInitializer(function(frame)
+                frame:SetSize(180, 26);
+                frame.Checkbox.label:SetText(v);
+                frame.Checkbox:SetChecked(GetSpec(2) == v and true or false);
+                frame.Checkbox:SetScript("OnClick", function(cb)
+                    if (cb:GetChecked() == true) then
+                        SetSpec(2, v, true);
+                    else
+                        SetSpec(2, "", true);
+                    end
+                end)
+                addon.CallbackRegistry:RegisterCallback(addon.Callbacks.SpecializationOptions_OnChanged, function(_, spec)
+                    if (spec == 2) then
+                        frame.Checkbox:SetChecked(GetSpec(2) == v and true or false);
+                    end
+                end);
+            end)
+        end
+
+    end)
+end
 
 
 
 FancyPanelsSpecPanelMixin = {}
 function FancyPanelsSpecPanelMixin:SetSpec(info)
+
+    --print(info.name, info.specID)
+
+    if (info.specID == 281) then
+
+        self.options:SetScript("OnClick", function(button)
+            InitFeralDruidOptions(button);
+        end)
+
+        self.options:Show();
+    else
+        self.options:Hide();
+    end
+
     self.name:SetText(info.name)
     self.thumbnail:SetTexCoord(info.thumbnailAtlas[1], info.thumbnailAtlas[2], info.thumbnailAtlas[3], info.thumbnailAtlas[4])
     self.description:SetText(info.description)
@@ -236,6 +316,8 @@ function FancyPanelsSpecPanelMixin:SetSpec(info)
     end)
 
     --DevTools_Dump({info})
+
+
 end
 
 local rolesAtlasMap = {
@@ -516,7 +598,9 @@ end
 
 
 
-
+--[[
+    Equipment tab faux tmog template
+]]
 
 FancyPanelsItemModelMixin = {}
 
@@ -1828,8 +1912,27 @@ function FancyPanelCharacterInvSlotMixin:OnLoad()
     Util.ApplyAtlas(self.iconBorder, "interface/talentframe/talents", "talents-node-square-gray")
     self:RegisterEvent("UNIT_INVENTORY_CHANGED");
 
-    addon.CallbackRegistry:RegisterCallback(addon.Callbacks.SavedVariables_OnChanged, self.OnEvent_Private, self)
+    addon.CallbackRegistry:RegisterCallback(addon.Callbacks.CharacterOptions_OnChanged, self.OnEvent_Private, self)
 
+end
+
+function FancyPanelCharacterInvSlotMixin:OnEnter()
+    -- local newItemLink = GetInventoryItemLink("player", self.invSlotId);
+    -- self.itemLink = newItemLink;
+    -- if (self.itemLink) then
+    --     GameTooltip:SetOwner(self, self.tooltipAnchor);
+    --     GameTooltip:SetHyperlink(self.itemLink);
+    --     GameTooltip:Show();
+    -- end
+
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+    local hasItem, hasCooldown, repairCost = GameTooltip:SetInventoryItem("player", self:GetID());
+
+    if (repairCost and (repairCost > 0)) then
+        GameTooltip:AddLine(REPAIR_COST, "", 1, 1, 1);
+        GameTooltip_AddMoneyLine(GameTooltip, repairCost);
+        GameTooltip:Show();
+    end
 end
 
 function FancyPanelCharacterInvSlotMixin:OnEvent_Private()
@@ -1880,22 +1983,88 @@ function FancyPanelCharacterInvSlotMixin:OnEvent(event, ...)
     self:OnEvent_Private();
 end
 
+
+local function InitMacroButton(parent, menu, item, invSlotId)
+    local isab = FancyPanelsMacroButton or CreateFrame("Button", "FancyPanelsMacroButton", UIParent, "InsecureActionButtonTemplate");
+    isab:SetHighlightAtlas("groupfinder-highlightbar-blue");
+    isab:RegisterForClicks("AnyDown");
+    isab:ClearAllPoints();
+    isab:SetParent(parent);
+    isab:SetPoint("TOPLEFT");
+    isab:SetPoint("BOTTOMRIGHT");
+    isab:SetAttribute("type", "macro");
+
+    local macro = string.format([[
+/use %d %d
+/use %d
+]], item.bag, item.slot, invSlotId);
+
+    isab:SetAttribute("macrotext1", macro);
+
+    isab:SetFrameLevel(parent:GetFrameLevel() + 1);
+
+    isab:SetScript("OnEnter", function()
+        GameTooltip:SetOwner(parent, "ANCHOR_RIGHT");
+        if (item.bag and item.slot) then
+            GameTooltip:SetBagItem(item.bag, item.slot);
+        else
+            GameTooltip:SetHyperlink(item.link);
+        end
+        GameTooltip:Show();
+    end);
+
+    isab:SetScript("OnMouseUp", function(_, hwButton)
+        menu:Pick(MenuInputContext.MouseButton, hwButton)
+        isab:ClearAllPoints();
+        isab:SetParent(UIParent);
+        isab:SetPoint("RIGHT", UIParent, "LEFT", -10, 0)
+    end)
+end
+
 function FancyPanelCharacterInvSlotMixin:OnClick()
+
+    if (self.itemLink and IsModifiedClick()) then
+        HandleModifiedItemClick(GetInventoryItemLink("player", self:GetID()));
+        --HandleModifiedItemClick(self.itemLink);
+        return;
+    end
+
+    local consumables = Util.GetContainerItems({
+        classID = 0,
+        subClassID = 8,
+        --tooltipScanStringMatch = "^(%d+) Charges$"
+    })
+
+    local itemEnhancements = Util.GetContainerItems(nil, addon.TEMP_ITEM_ENHANCEMENTS)
+
+    --DevTools_Dump({consumables});
+
+
     local itemsForSlot = Util.GetContainerItemsForInvSlot(self.equipLoc);
-    if (#itemsForSlot > 0) then
+    if (#itemsForSlot > 0) or (#consumables > 0) then
+
         MenuUtil.CreateContextMenu(self, function(_, rootDescription)
-            if type(self.equipLoc) == "table" then
-                rootDescription:CreateTitle(_G[self.equipLoc[1]]);
-            else
-                rootDescription:CreateTitle(_G[self.equipLoc]);
+
+            if (#itemsForSlot > 0) then
+                if type(self.equipLoc) == "table" then
+                    rootDescription:CreateTitle(_G[self.equipLoc[1]]);
+                else
+                    rootDescription:CreateTitle(_G[self.equipLoc]);
+                end
+                rootDescription:CreateDivider()
             end
-            rootDescription:CreateDivider()
+
             for _, link in ipairs(itemsForSlot) do
                 local itemName = C_Item.GetItemNameByID(link)
 
                 local itemButton = rootDescription:CreateButton(link, function()
                     if ( C_Item.IsEquippableItem(itemName)) then
-                        C_Item.EquipItemByName(itemName, self.invSlotId);
+
+                        --found a bug using the name, i couldn't equip the mount hyjal rep ring Band of Eternity
+                        --using the itemLink seemed to fix the problem
+                        C_Item.EquipItemByName(link, self.invSlotId);
+                    else
+                        --print("failed is equippable", itemName)
                     end
                 end)
 
@@ -1910,29 +2079,143 @@ function FancyPanelCharacterInvSlotMixin:OnClick()
                     end)
                 end
 
-                -- local itemButton = rootDescription:CreateButton(link, function()
-                --     if ( C_Item.IsEquippableItem(itemName)) then -- and not C_Item.IsEquippedItem(itemName) ) then
-                --         --local slotID = GetInventorySlotInfo(self.invSlotName)
-                --         --print(self.invSlotId)
-                --         C_Item.EquipItemByName(itemName, self.invSlotId);
-                --     end
-                -- end)
                 itemButton:SetTooltip(function()
                     GameTooltip:SetHyperlink(link);
                 end)
 
             end
+
+            if (#itemEnhancements > 0) then
+                if (#itemsForSlot > 0) then
+                    rootDescription:CreateDivider();
+                end
+
+                rootDescription:CreateTitle(C_Item.GetItemClassInfo(8));
+
+                for k, enhancement in ipairs(itemEnhancements) do
+                    
+                    local enhancementButton = rootDescription:CreateButton(enhancement.link, function()
+                    
+                    end)
+
+                    enhancementButton:HookOnEnter(function(button, description)
+                        InitMacroButton(button, description, enhancement, self.invSlotId)
+                    end)
+
+                    enhancementButton:SetResponder(function()
+                        return MenuResponse.CloseAll;
+                    end)
+                end
+
+            end
+
+            if (#consumables > 0) then
+                if (#itemsForSlot > 0) then
+                    rootDescription:CreateDivider();
+                end
+
+                rootDescription:CreateTitle(C_Item.GetItemClassInfo(0));
+
+                --attempt to find charges for items like wizard oil
+                for k, v in ipairs(consumables) do
+                    local charges = Util.ScanTooltip(nil, v.bag, v.slot, "^(%d+) Charges$");
+                    if charges then
+                        v.numCharges = tonumber(charges);
+                    end
+                end
+
+                --quickly sort for any items with charges, the menu will use the first item and ignore
+                --any matching itemIDs after, so set the lowest charged item first
+                table.sort(consumables, function(a, b)
+                    if a.numCharges and b.numCharges then
+                        return a.numCharges < b.numCharges;
+                    else
+                        return a.link < b.link;
+                    end
+                end)
+
+                --local addedItemIDs = {};
+
+                for _, consumable in ipairs(consumables) do
+
+                    --if addedItemIDs[consumable.itemID] == nil then
+                        
+                        local consumableButton = rootDescription:CreateButton(consumable.link, function()
+                        
+                        end)
+
+                        -- local function SetTooltip(parent, link)
+                        --     GameTooltip:SetOwner(parent, "ANCHOR_RIGHT");
+                        --     GameTooltip:SetHyperlink(link);
+                        --     GameTooltip:Show();
+                        -- end
+
+
+                        --[[
+                            Absolutey up yours Blizzard and this menu system
+
+                            You CANNOT use SetTooltip AND SetOnEnter or HookOnEnter
+
+                            So, to make a very simple in-game behaviour possible (aka to apply an oil, or any other temp enchant) we
+                            need a ISAB to make use of a macro (fine).
+
+                            To get it working was less than straight forward, AND its still not possible to target a specific
+                            item, players (probably) want to use the item with less charges....
+
+                            So, I had to use a global macro button (ISAB) and layer it above your menu button in its OnEnter to be 
+                            able to use the macro aspect of it. 
+                            BUT this removed the organic feel of the Blizz Menu button (the highlight texture for example).
+
+                            Anyways, its working for now.
+                        
+                        ]]
+                        consumableButton:HookOnEnter(function(button, description, menu)
+                            InitMacroButton(button, description, consumable, self.invSlotId)
+
+--                             local isab = FancyPanelsMacroButton or CreateFrame("Button", "FancyPanelsMacroButton", UIParent, "InsecureActionButtonTemplate");
+--                             isab:SetHighlightAtlas("groupfinder-highlightbar-blue");
+--                             isab:RegisterForClicks("AnyDown");
+--                             isab:ClearAllPoints();
+--                             isab:SetParent(button);
+--                             isab:SetPoint("TOPLEFT");
+--                             isab:SetPoint("BOTTOMRIGHT");
+--                             isab:SetAttribute("type", "macro");
+
+--                             local macro = string.format([[
+-- /use %d %d
+-- /use %d
+-- ]], consumable.bag, consumable.slot, self.invSlotId);
+
+--                             isab:SetAttribute("macrotext1", macro);
+
+--                             isab:SetFrameLevel(button:GetFrameLevel() + 1);
+
+--                             isab:SetScript("OnEnter", function()
+--                                 SetTooltip(button, consumable.link);
+--                             end);
+
+--                             isab:SetScript("OnMouseUp", function(_, hwButton)
+--                                 description:Pick(MenuInputContext.MouseButton, hwButton)
+--                                 isab:ClearAllPoints();
+--                                 isab:SetParent(UIParent);
+--                                 isab:SetPoint("RIGHT", UIParent, "LEFT", -10, 0)
+--                             end)
+
+                        end)
+                        
+                        consumableButton:SetResponder(function()
+                            return MenuResponse.CloseAll;
+                        end)
+
+                        --addedItemIDs[consumable.itemID] = true;
+
+                    --end
+                end
+
+            end
+
         end)
     end
-
-    -- local spell = Spell:CreateFromSpellID(13363)
-
-    -- spell:ContinueOnSpellLoad(function()
-    --     print("1", spell:GetSpellName());
-    --     print("2", spell:GetSpellSubtext());
-    --     print("3", spell:GetSpellDescription()); --might be usable?
-    -- end)
-
 
 end
 
@@ -2231,6 +2514,12 @@ function FancyPanelCharacterInvSlotMixin:UpdateItemMods(showEnchant, showSockets
         --print("===== NO MODS FOUND ======", self.itemLink);
     end
 end
+
+
+
+
+
+
 
 
 

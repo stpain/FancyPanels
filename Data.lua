@@ -3103,3 +3103,96 @@ end
 if WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC then
     addon.ENCHANT_EFFECT_DATA = tbcEnchantEffectToSpellID;
 end
+
+
+addon.TEMP_ITEM_ENHANCEMENTS = {
+    3829, --Frost Oil
+    3824, -- Shadow Oil
+    6533, -- Aquadynamic Fish Attractor
+    2892, -- Deadly Poison
+    43233, -- Deadly Poison IX
+    36900, -- Exceptional Wizard Oil
+    43231, -- Instant Poison IX
+    20747, -- Lesser Mana Oil
+    23576, -- Greater Ward of Shielding
+    41196, -- Grand Spellstone
+    6947, -- Instant Poison
+    22522, -- Superior Wizard Oil
+    6530, -- Nightcrawlers
+    3775, -- Crippling Poison
+    10918, -- Wound Poison
+    23575, -- Lesser Ward of Shielding
+    41192, -- Greater Spellstone
+    46006, -- Glow Worm
+    6532, -- Bright Baubles
+    5237, -- Mind-numbing Poison
+    34861, -- Sharpened Fish Hook
+    7964, -- Solid Sharpening Stone
+    12404, -- Dense Sharpening Stone
+    25521, -- Greater Rune of Warding
+    41194, -- Master Spellstone
+    43235, -- Wound Poison VII
+    2871, -- Heavy Sharpening Stone
+    6529, -- Shiny Bauble
+    18262, -- Elemental Sharpening Stone
+    20744, -- Minor Wizard Oil
+    20750, -- Wizard Oil
+    20844, -- Deadly Poison V
+    22055, -- Wound Poison V
+    43237, -- Anesthetic Poison II
+    20749, -- Brilliant Wizard Oil
+    23529, -- Adamantite Sharpening Stone
+    23559, -- Lesser Rune of Warding
+    28420, -- Fel Weightstone
+    28421, -- Adamantite Weightstone
+    43232, -- Deadly Poison VIII
+    3240, -- Coarse Weightstone
+    22053, -- Deadly Poison VI
+    36899, -- Exceptional Mana Oil
+    8926, -- Instant Poison IV
+    20748, -- Brilliant Mana Oil
+    40773, -- Master Firestone
+    41173, -- Fel Firestone
+    2862, -- Rough Sharpening Stone
+    8927, -- Instant Poison V
+    10920, -- Wound Poison II
+    12643, -- Dense Weightstone
+    21835, -- Anesthetic Poison
+    22054, -- Deadly Poison VII
+    22521, -- Superior Mana Oil
+    41169, -- Firestone
+    6950, -- Instant Poison III
+    8985, -- Deadly Poison IV
+    21927, -- Instant Poison VII
+    31535, -- Bloodboil Poison
+    41171, -- Greater Firestone
+    2863, -- Coarse Sharpening Stone
+    3239, -- Rough Weightstone
+    6949, -- Instant Poison II
+    7965, -- Solid Weightstone
+    8928, -- Instant Poison VI
+    10921, -- Wound Poison III
+    23528, -- Fel Sharpening Stone
+    25679, -- Comfortable Insoles
+    41191, -- Spellstone
+    41193, -- Major Spellstone
+    41195, -- Demonic Spellstone
+    43234, -- Wound Poison VI
+    2893, -- Deadly Poison II
+    5654, -- Instant Toxin
+    6811, -- Aquadynamic Fish Lens
+    7307, -- Flesh Eating Worm
+    8984, -- Deadly Poison III
+    10922, -- Wound Poison IV
+    23122, -- Consecrated Sharpening Stone
+    23123, -- Blessed Wizard Oil
+    34538, -- Blessed Weapon Coating
+    41170, -- Lesser Firestone
+    41172, -- Major Firestone
+    41174, -- Grand Firestone
+    43230, -- Instant Poison VIII
+    3241, -- Heavy Weightstone
+    20745, -- Minor Mana Oil
+    20746, -- Lesser Wizard Oil
+    34539, -- Righteous Weapon Coating
+}

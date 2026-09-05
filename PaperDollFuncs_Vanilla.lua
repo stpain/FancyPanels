@@ -77,7 +77,7 @@ end
     frame like the TBC versions do
 ]]
 
-function FancyPanelsCharacterFrame_SetAttackBothHands(frame)
+local function FancyPanelsCharacterFrame_SetAttackBothHands(frame)
 	
     --frame.label:SetText(MELEE_ATTACK);
     frame.label:SetText(COMBAT_RATING_NAME1);
@@ -123,7 +123,7 @@ function FancyPanelsCharacterFrame_SetAttackBothHands(frame)
 	frame.tooltip2 = ATTACK_TOOLTIP_SUBTEXT;
 end
 
-function FancyPanelsCharacterFrame_SetAttackSpeed(frame)
+local function FancyPanelsCharacterFrame_SetAttackSpeed(frame)
     local unit = "player";
     local speed, offhandSpeed = UnitAttackSpeed(unit);
     speed = format("%.2f", speed);
@@ -145,8 +145,7 @@ function FancyPanelsCharacterFrame_SetAttackSpeed(frame)
     frame.tooltip2 = format(CR_HASTE_RATING_TOOLTIP, GetCombatRating(18), GetCombatRatingBonus(18));
 end
 
-
-function FancyPanelsCharacterFrame_SetDamage(frame)
+local function FancyPanelsCharacterFrame_SetDamage(frame)
 
     local unit = "player";
 	local damageText = frame.statText
@@ -263,7 +262,7 @@ function FancyPanelsCharacterFrame_SetDamage(frame)
 	end
 end
 
-function FancyPanelsCharacterFrame_SetAttackPower(frame)
+local function FancyPanelsCharacterFrame_SetAttackPower(frame)
 
     local unit = "player";
 	
@@ -277,7 +276,7 @@ function FancyPanelsCharacterFrame_SetAttackPower(frame)
 	frame.tooltip2 = format(MELEE_ATTACK_POWER_TOOLTIP, max((base+posBuff+negBuff), 0)/ATTACK_POWER_MAGIC_NUMBER);
 end
 
-function FancyPanelsCharacterFrame_SetMeleeCritChance(frame)
+local function FancyPanelsCharacterFrame_SetMeleeCritChance(frame)
 	local critChance = GetCritChance();-- + GetCritChanceFromAgility();
 	critChance = format("%.2f%%", critChance);
     frame.statText:SetText(critChance);
@@ -286,7 +285,7 @@ function FancyPanelsCharacterFrame_SetMeleeCritChance(frame)
 	frame.tooltip2 = format(CR_CRIT_MELEE_TOOLTIP, GetCombatRating(9), GetCombatRatingBonus(9));
 end
 
-function FancyPanelsCharacterFrame_SetMeleeHitChance(frame)
+local function FancyPanelsCharacterFrame_SetMeleeHitChance(frame)
 
     --local mainBase, mainMod, offBase, offMod = UnitAttackBothHands("player")
 
@@ -297,6 +296,329 @@ function FancyPanelsCharacterFrame_SetMeleeHitChance(frame)
 	frame.tooltip = HIGHLIGHT_FONT_COLOR_CODE..STAT_HIT_CHANCE.." "..hitMod..FONT_COLOR_CODE_CLOSE;
 	frame.tooltip2 = format(STAT_HIT_MELEE_TOOLTIP, GetCombatRating(9), GetCombatRatingBonus(9));
 end
+
+
+
+
+
+
+
+
+
+
+local function FancyPanelsCharacterFrame_SetRangedDamage(frame)
+
+    local unit = "player";
+	local damageText = frame.statText
+	local damageFrame = frame
+
+    frame.label:SetText(DAMAGE_COLON);
+
+	-- If no ranged attack then set to n/a
+	if ( PaperDollFrame.noRanged ) then
+		damageText:SetText(NOT_APPLICABLE);
+		damageFrame.damage = nil;
+		return;
+	end
+
+	local rangedAttackSpeed, minDamage, maxDamage, physicalBonusPos, physicalBonusNeg, percent = UnitRangedDamage(unit);
+	local displayMin = max(floor(minDamage),1);
+	local displayMax = max(ceil(maxDamage),1);
+
+	minDamage = (minDamage / percent) - physicalBonusPos - physicalBonusNeg;
+	maxDamage = (maxDamage / percent) - physicalBonusPos - physicalBonusNeg;
+
+	local baseDamage = (minDamage + maxDamage) * 0.5;
+	local fullDamage = (baseDamage + physicalBonusPos + physicalBonusNeg) * percent;
+	local totalBonus = (fullDamage - baseDamage);
+	local damagePerSecond;
+	if (rangedAttackSpeed == 0) then
+		-- Egan's Blaster!!!
+		damagePerSecond = math.huge;
+	else
+		damagePerSecond = (max(fullDamage,1) / rangedAttackSpeed);
+	end
+
+	local tooltip = max(floor(minDamage),1).." - "..max(ceil(maxDamage),1);
+
+	if ( totalBonus == 0 ) then
+		if ( ( displayMin < 100 ) and ( displayMax < 100 ) ) then 
+			damageText:SetText(displayMin.." - "..displayMax);	
+		else
+			damageText:SetText(displayMin.."-"..displayMax);
+		end
+	else
+		local colorPos = "|cff20ff20";
+		local colorNeg = "|cffff2020";
+		local color;
+		if ( totalBonus > 0 ) then
+			color = colorPos;
+		else
+			color = colorNeg;
+		end
+		if ( ( displayMin < 100 ) and ( displayMax < 100 ) ) then 
+			damageText:SetText(color..displayMin.." - "..displayMax.."|r");	
+		else
+			damageText:SetText(color..displayMin.."-"..displayMax.."|r");
+		end
+		if ( physicalBonusPos > 0 ) then
+			tooltip = tooltip..colorPos.." +"..physicalBonusPos.."|r";
+		end
+		if ( physicalBonusNeg < 0 ) then
+			tooltip = tooltip..colorNeg.." "..physicalBonusNeg.."|r";
+		end
+		if ( percent > 1 ) then
+			tooltip = tooltip..colorPos.." x"..floor(percent*100+0.5).."%|r";
+		elseif ( percent < 1 ) then
+			tooltip = tooltip..colorNeg.." x"..floor(percent*100+0.5).."%|r";
+		end
+		damageFrame.tooltip = tooltip.." "..format(DPS_TEMPLATE, damagePerSecond);
+	end
+	damageFrame.attackSpeed = rangedAttackSpeed;
+	damageFrame.damage = tooltip;
+	damageFrame.dps = damagePerSecond;
+end
+
+local function FancyPanelsCharacterFrame_SetRangedAttackPower(frame)
+	if ( not unit ) then
+		unit = "player";
+	elseif ( unit == "pet" ) then
+		return;
+	end
+	if ( not prefix ) then
+		prefix = "Character";
+	end
+	
+    local text = frame.statText;
+    frame.label:SetText(ATTACK_POWER_COLON);
+	
+	-- If no ranged attack then set to n/a
+	if ( PaperDollFrame.noRanged ) then
+		text:SetText(NOT_APPLICABLE);
+		frame.tooltip = nil;
+		return;
+	end
+	if ( HasWandEquipped() ) then
+		text:SetText("--");
+		frame.tooltip = nil;
+		return;
+	end
+
+	local base, posBuff, negBuff = UnitRangedAttackPower(unit);
+	PaperDollFormatStat(RANGED_ATTACK_POWER, base, posBuff, negBuff, frame, text);
+	frame.tooltip2 = format(RANGED_ATTACK_POWER_TOOLTIP, base/ATTACK_POWER_MAGIC_NUMBER);
+end
+
+local function FancyPanelCharacterFrame_SetRangedAttackSpeed(frame)
+    local unit = "player";
+    local rangedAttackSpeed, minDamage, maxDamage, physicalBonusPos, physicalBonusNeg, percent = UnitRangedDamage(unit);
+    frame.statText:SetText(string.format("%0.2f",rangedAttackSpeed));
+    frame.label:SetText(ATTACK_SPEED);
+end
+
+local function FancyPanelsCharacterFrame_SetRangedAttack(frame)
+	if ( not unit ) then
+		unit = "player";
+	elseif ( unit == "pet" ) then
+		return;
+	end
+	if ( not prefix ) then
+		prefix = "Character";
+	end
+
+    frame.label:SetText(RANGED_ATTACK);
+
+	local hasRelic = UnitHasRelicSlot(unit);
+
+	local rangedAttackBase, rangedAttackMod = UnitRangedAttack(unit);
+	local text = frame.statText;
+
+	-- If no ranged texture then set stats to n/a
+	local rangedTexture = GetInventoryItemTexture("player", 18);
+	local oldValue = PaperDollFrame.noRanged;
+	if ( rangedTexture and not hasRelic ) then
+		PaperDollFrame.noRanged = nil;
+	else
+		text:SetText(NOT_APPLICABLE);
+		PaperDollFrame.noRanged = 1;
+		frame.tooltip = nil;
+	end
+	if ( not rangedTexture or hasRelic ) then
+		return;
+	end
+	
+	if( rangedAttackMod == 0 ) then
+		text:SetText(rangedAttackBase);
+	else
+		local color = RED_FONT_COLOR_CODE;
+		if( rangedAttackMod > 0 ) then
+			color = GREEN_FONT_COLOR_CODE;
+		end
+		text:SetText(color..(rangedAttackBase + rangedAttackMod)..FONT_COLOR_CODE_CLOSE);
+	end
+
+	frame.tooltip = RANGED_ATTACK_TOOLTIP;
+	frame.tooltip2 = ATTACK_TOOLTIP_SUBTEXT;
+end
+
+
+
+
+
+
+
+
+local function FancyPanelsCharacterFrame_SetArmor(statFrame, unit)
+	if ( not unit ) then
+		unit = "player";
+	end
+	local base, effectiveArmor, armor, posBuff, negBuff = UnitArmor(unit);
+	statFrame.label:SetText(ARMOR_COLON);
+	local text = statFrame.statText;
+
+	PaperDollFormatStat(ARMOR, base, posBuff, negBuff, statFrame, text);
+	local armorReduction = PaperDollFrame_GetArmorReduction(effectiveArmor, UnitLevel(unit));
+	local armorReductionText = format("%.2f", armorReduction);
+	statFrame.tooltip2 = format(DEFAULT_STATARMOR_TOOLTIP, armorReductionText);
+	
+	-- if ( unit == "player" ) then
+	-- 	local petBonus = ComputePetBonus("PET_BONUS_ARMOR", effectiveArmor );
+	-- 	if( petBonus > 0 ) then
+	-- 		statFrame.tooltip2 = statFrame.tooltip2 .. "\n" .. format(PET_BONUS_TOOLTIP_ARMOR, petBonus);
+	-- 	end
+	-- end
+end
+
+local function FancyPanelsCharacterFrame_SetDefense(statFrame, unit)
+	if ( not unit ) then
+		unit = "player";
+	end
+	if ( not prefix ) then
+		prefix = "Character";
+	end
+	local base, modifier = UnitDefense(unit);
+    statFrame.label:SetText(DEFENSE);
+	local text = statFrame.statText;
+	
+	local posBuff = 0;
+	local negBuff = 0;
+	if ( modifier > 0 ) then
+		posBuff = modifier;
+	elseif ( modifier < 0 ) then
+		negBuff = modifier;
+	end
+	PaperDollFormatStat(DEFENSE_COLON, base, posBuff, negBuff, statFrame, text);
+end
+
+local function FancyPanelsCharacterFrame_SetDodge(statFrame)
+    local CR_DODGE = 3;
+	local chance = GetDodgeChance();
+    statFrame.label:SetText(STAT_DODGE);
+    statFrame.statText:SetText(string.format("%0.2f",chance));
+	--PaperDollFrame_SetLabelAndText(statFrame, STAT_DODGE, chance, 1);
+	statFrame.tooltip = HIGHLIGHT_FONT_COLOR_CODE..getglobal("DODGE_CHANCE").." "..string.format("%.02f", chance).."%"..FONT_COLOR_CODE_CLOSE;
+	statFrame.tooltip2 = format(CR_DODGE_TOOLTIP, GetCombatRating(CR_DODGE), GetCombatRatingBonus(CR_DODGE));
+end
+
+local function FancyPanelsCharacterFrame_SetBlock(statFrame)
+    local CR_BLOCK = 5;
+	local chance = GetBlockChance();
+    statFrame.label:SetText(STAT_BLOCK);
+    statFrame.statText:SetText(string.format("%0.2f",chance));
+	--PaperDollFrame_SetLabelAndText(statFrame, STAT_BLOCK, chance, 1);
+	statFrame.tooltip = HIGHLIGHT_FONT_COLOR_CODE..getglobal("BLOCK_CHANCE").." "..string.format("%.02f", chance).."%"..FONT_COLOR_CODE_CLOSE;
+	statFrame.tooltip2 = format(CR_BLOCK_TOOLTIP, GetCombatRating(CR_BLOCK), GetCombatRatingBonus(CR_BLOCK), GetShieldBlock());
+end
+
+local function FancyPanelsCharacterFrame_SetParry(statFrame)
+    local CR_PARRY = 4;
+	local chance = GetParryChance();
+    statFrame.label:SetText(STAT_PARRY);
+    statFrame.statText:SetText(string.format("%0.2f",chance));
+	--PaperDollFrame_SetLabelAndText(statFrame, STAT_PARRY, chance, 1);
+	statFrame.tooltip = HIGHLIGHT_FONT_COLOR_CODE..getglobal("PARRY_CHANCE").." "..string.format("%.02f", chance).."%"..FONT_COLOR_CODE_CLOSE;
+	statFrame.tooltip2 = format(CR_PARRY_TOOLTIP, GetCombatRating(CR_PARRY), GetCombatRatingBonus(CR_PARRY));
+end
+
+-- function GetDodgeBlockParryChanceFromDefense()
+-- 	local base, modifier = UnitDefense("player");
+-- 	--local defensePercent = DODGE_PARRY_BLOCK_PERCENT_PER_DEFENSE * modifier;
+-- 	local defensePercent = DODGE_PARRY_BLOCK_PERCENT_PER_DEFENSE * ((base + modifier) - (UnitLevel("player")*5));
+-- 	defensePercent = max(defensePercent, 0);
+-- 	return defensePercent;
+-- end
+
+
+
+
+local MAX_SPELL_SCHOOLS = 7;
+local function FancyPanelsCharacterFrame_SetSpellBonusDamage(statFrame)
+	getglobal(statFrame:GetName().."Label"):SetText(BONUS_DAMAGE..":");
+	local text = getglobal(statFrame:GetName().."StatText");
+	local holySchool = 2;
+	-- Start at 2 to skip physical damage
+	local minModifier = GetSpellBonusDamage(holySchool);
+	statFrame.bonusDamage = {};
+	statFrame.bonusDamage[holySchool] = minModifier;
+	local bonusDamage;
+	for i=(holySchool+1), MAX_SPELL_SCHOOLS do
+		bonusDamage = GetSpellBonusDamage(i);
+		minModifier = min(minModifier, bonusDamage);
+		statFrame.bonusDamage[i] = bonusDamage;
+	end
+	text:SetText(minModifier);
+	statFrame.minModifier = minModifier;
+end
+
+local function FancyPanelsCharacterFrame_SetSpellBonusHealing(statFrame)
+	getglobal(statFrame:GetName().."Label"):SetText(BONUS_HEALING..":");
+	local text = getglobal(statFrame:GetName().."StatText");
+	local bonusHealing = GetSpellBonusHealing();
+	text:SetText(bonusHealing);
+	statFrame.tooltip = HIGHLIGHT_FONT_COLOR_CODE .. BONUS_HEALING .. FONT_COLOR_CODE_CLOSE;
+	statFrame.tooltip2 =format(BONUS_HEALING_TOOLTIP, bonusHealing);
+end
+
+local function FancyPanelsCharacterFrame_SetSpellCritChance(statFrame)
+	getglobal(statFrame:GetName().."Label"):SetText(SPELL_CRIT_CHANCE..":");
+	local text = getglobal(statFrame:GetName().."StatText");
+	local holySchool = 2;
+	-- Start at 2 to skip physical damage
+	local minCrit = GetSpellCritChance(holySchool);
+	statFrame.spellCrit = {};
+	statFrame.spellCrit[holySchool] = minCrit;
+	local spellCrit;
+	for i=(holySchool+1), MAX_SPELL_SCHOOLS do
+		spellCrit = GetSpellCritChance(i);
+		minCrit = min(minCrit, spellCrit);
+		statFrame.spellCrit[i] = spellCrit;
+	end
+	-- Add agility contribution
+	--minCrit = minCrit + GetSpellCritChanceFromIntellect();
+	minCrit = format("%.2f%%", minCrit);
+	text:SetText(minCrit);
+	statFrame.minCrit = minCrit;
+end
+
+local function FancyPanelsCharacterFrame_SetManaRegen(statFrame)
+	getglobal(statFrame:GetName().."Label"):SetText(MANA_REGEN..":");
+	local text = getglobal(statFrame:GetName().."StatText");
+	if ( not UnitHasMana("player") ) then
+		text:SetText(NOT_APPLICABLE);
+		statFrame.tooltip = nil;
+		return;
+	end
+	
+	local base, casting = GetManaRegen();
+	-- All mana regen stats are displayed as mana/5 sec.
+	base = floor( base * 5.0 );
+	casting = floor( casting * 5.0 );
+	text:SetText(base);
+	statFrame.tooltip = HIGHLIGHT_FONT_COLOR_CODE .. MANA_REGEN .. FONT_COLOR_CODE_CLOSE;
+	statFrame.tooltip2 = format(MANA_REGEN_TOOLTIP, base, casting);
+end
+
+
 
 
 
@@ -315,29 +637,30 @@ local MeleeFunc = {
 };
 
 local RangedFunc = {
-    PaperDollFrame_SetRangedDamage,
-    PaperDollFrame_SetRangedAttackSpeed,
-    PaperDollFrame_SetRangedAttackPower,
-    PaperDollFrame_SetRating,
-    PaperDollFrame_SetRangedCritChance,
+    FancyPanelsCharacterFrame_SetRangedAttack,
+    FancyPanelsCharacterFrame_SetRangedAttackPower,
+    FancyPanelsCharacterFrame_SetRangedDamage,
+    FancyPanelCharacterFrame_SetRangedAttackSpeed,
+    --PaperDollFrame_SetRating,
+    --PaperDollFrame_SetRangedCritChance,
 };
 
 local SpellFunc = {
-    PaperDollFrame_SetSpellBonusDamage;
-    PaperDollFrame_SetSpellBonusHealing;
-    PaperDollFrame_SetRating;
-    PaperDollFrame_SetSpellCritChance;
-    PaperDollFrame_SetSpellHaste;
-    PaperDollFrame_SetManaRegen;
+    FancyPanelsCharacterFrame_SetSpellBonusDamage;
+    FancyPanelsCharacterFrame_SetSpellBonusHealing;
+    --PaperDollFrame_SetRating;
+    FancyPanelsCharacterFrame_SetSpellCritChance;
+    --PaperDollFrame_SetSpellHaste;
+    FancyPanelsCharacterFrame_SetManaRegen;
 };
 
 local DefenceFunc = {
-    PaperDollFrame_SetArmor;
-    PaperDollFrame_SetDefense;
-    PaperDollFrame_SetDodge;
-    PaperDollFrame_SetParry;
-    PaperDollFrame_SetBlock;
-    PaperDollFrame_SetResilience;
+    FancyPanelsCharacterFrame_SetArmor;
+    FancyPanelsCharacterFrame_SetDefense;
+    FancyPanelsCharacterFrame_SetDodge;
+    FancyPanelsCharacterFrame_SetParry;
+    FancyPanelsCharacterFrame_SetBlock;
+    --PaperDollFrame_SetResilience;
 }
 
 function FancyPanelCharacterFrame_UpdateResistances(frame)
@@ -347,9 +670,11 @@ function FancyPanelCharacterFrame_UpdateResistances(frame)
     local resistanceLevel;
     local base;
     local text = frame.statText;
-    
+    local petBonus = 0;
     base, resistance, positive, negative = UnitResistance("player", frame:GetID());
-    local petBonus = ComputePetBonus( "PET_BONUS_RES", resistance );
+    if (WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC) then
+        petBonus = ComputePetBonus( "PET_BONUS_RES", resistance );
+    end
 
     local resistanceName = getglobal("RESISTANCE" .. (frame:GetID()) .. "_NAME");
     frame.label:SetText(resistanceName);
@@ -519,7 +844,7 @@ local PlayerStats = {
     end,
 
     RangedStatsIter = function()
-        local index, count = 0, 5;
+        local index, count = 0, 4;
         return function()
             index = index + 1;
             if (index > count) then
@@ -527,29 +852,36 @@ local PlayerStats = {
             else
                 local f = CreateStatFrame(string.format("RangedStat_%d", index));
                 local statIndex = index;
-                if index == 1 then
-                    f:SetScript("OnEnter", CharacterRangedDamageFrame_OnEnter)
-                else
-                    f:SetScript("OnEnter", PaperDollStatTooltip)
-                end
-                if (index == 4) then
-                    f:SetScript("OnEvent", function()
-                        RangedFunc[statIndex](f, CR_HIT_RANGED)
-                    end)
-                    RangedFunc[statIndex](f, CR_HIT_RANGED)
-                else
-                    f:SetScript("OnEvent", function()
-                        RangedFunc[statIndex](f)
-                    end)
+                -- if index == 1 then
+                --     f:SetScript("OnEnter", CharacterRangedDamageFrame_OnEnter)
+                -- else
+                --     f:SetScript("OnEnter", PaperDollStatTooltip)
+                -- end
+                -- if (index == 4) then
+                --     f:SetScript("OnEvent", function()
+                --         RangedFunc[statIndex](f, CR_HIT_RANGED)
+                --     end)
+                --     RangedFunc[statIndex](f, CR_HIT_RANGED)
+                -- else
+                --     f:SetScript("OnEvent", function()
+                --         RangedFunc[statIndex](f)
+                --     end)
+                --     RangedFunc[statIndex](f)
+                -- end
+
+                f:SetScript("OnEnter", PaperDollStatTooltip)
+                f:SetScript("OnEvent", function()
                     RangedFunc[statIndex](f)
-                end
+                end)
+                RangedFunc[statIndex](f)
+
                 return index, f;
             end
         end
     end,
 
     SpellStatsIter = function()
-        local index, count = 0, 6;
+        local index, count = 0, 4;
         return function()
             index = index + 1;
             if (index > count) then
@@ -557,37 +889,45 @@ local PlayerStats = {
             else
                 local f = CreateStatFrame(string.format("SpellStat_%d", index));
                 local statIndex = index;
-                if index == 1 then
-                    f:SetScript("OnEnter", CharacterSpellBonusDamage_OnEnter)
-                elseif index == 4 then
-                    f:SetScript("OnEnter", CharacterSpellCritChance_OnEnter)
-                else
-                    f:SetScript("OnEnter", PaperDollStatTooltip)
-                end
-                if (index == 3) then
-                    f:SetScript("OnEvent", function()
-                        SpellFunc[statIndex](f, CR_HIT_SPELL)
-                    end)
-                    SpellFunc[statIndex](f, CR_HIT_SPELL)
-                else
-                    f:SetScript("OnEvent", function()
-                        SpellFunc[statIndex](f)
-                    end)
+                -- if index == 1 then
+                --     f:SetScript("OnEnter", CharacterSpellBonusDamage_OnEnter)
+                -- elseif index == 4 then
+                --     f:SetScript("OnEnter", CharacterSpellCritChance_OnEnter)
+                -- else
+                --     f:SetScript("OnEnter", PaperDollStatTooltip)
+                -- end
+                -- if (index == 3) then
+                --     f:SetScript("OnEvent", function()
+                --         SpellFunc[statIndex](f, CR_HIT_SPELL)
+                --     end)
+                --     SpellFunc[statIndex](f, CR_HIT_SPELL)
+                -- else
+                --     f:SetScript("OnEvent", function()
+                --         SpellFunc[statIndex](f)
+                --     end)
+                --     SpellFunc[statIndex](f)
+                -- end
+
+                f:SetScript("OnEnter", PaperDollStatTooltip)
+                f:SetScript("OnEvent", function()
                     SpellFunc[statIndex](f)
-                end
+                end)
+                SpellFunc[statIndex](f)
+
                 return index, f;
             end
         end
     end,
 
     DefenceStatsIter = function()
-        local index, count = 0, 6;
+        local index, count = 0, 5;
         return function()
             index = index + 1;
             if index > count then
                 return
             else
                 local f = CreateStatFrame(string.format("DefenceStat_%d", index));
+                local frameName = f:GetName();
                 local statIndex = index;
                 f:SetScript("OnEvent", function()
                     DefenceFunc[statIndex](f)

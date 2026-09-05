@@ -12,6 +12,14 @@ local _, addon = ...;
 
 local ChangeLog = {
     {
+        version = "0.4",
+        log = {
+            "Added a feral druid option to select cat or bear artwork.",
+            "Added key binding options.",
+            "Added stats for Vanilla clients - should be correct, please report any issues."
+        },
+    },
+    {
         version = "0.3",
         log = {
             "Fixed a bug for 'Relic' slots on character inventory - should now find correct items.",
