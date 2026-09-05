@@ -1,6 +1,6 @@
 ## Interface: 11509, 20506
 ## Author: TheBoringDad
-## Version: 0.3
+## Version: 0.4
 ## Title: Fancy Panels
 ## Notes: Fancy Panels for your Classic gaming.
 ## SavedVariables: FancyPanelsAccount
