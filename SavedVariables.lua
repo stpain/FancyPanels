@@ -18,6 +18,7 @@ local Defaults = {
         showItemEnchantments = false,
         suggestItemUpgrade = false,
         confirmSocketChanges = true,
+        showItemDurability = true,
     },
     specializations = {
         druidSpec1 = "",

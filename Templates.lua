@@ -1869,7 +1869,9 @@ function FancyPanelsOutfitListItemMixin:SetDataBinding(binding, height)
     end)
 
     self:SetScript("OnClick", function()
-        C_EquipmentSet.UseEquipmentSet(setID);
+        --C_EquipmentSet.UseEquipmentSet(setID);
+        EquipmentManager_EquipSet (setID)
+        
     end)
 
     self:SetScript("OnDragStart", function()
@@ -1929,6 +1931,7 @@ function FancyPanelCharacterInvSlotMixin:OnEnter()
     local hasItem, hasCooldown, repairCost = GameTooltip:SetInventoryItem("player", self:GetID());
 
     if (repairCost and (repairCost > 0)) then
+        GameTooltip:AddLine(" ");
         GameTooltip:AddLine(REPAIR_COST, "", 1, 1, 1);
         GameTooltip_AddMoneyLine(GameTooltip, repairCost);
         GameTooltip:Show();
@@ -1941,6 +1944,9 @@ function FancyPanelCharacterInvSlotMixin:OnEvent_Private()
     local newItemLink = GetInventoryItemLink("player", self.invSlotId);
     if ( newItemLink ~= self.itemLink ) then
         self.itemChangedAnim:Play();
+    else
+        -- print(newItemLink);
+        -- print(self.itemLink);
     end
 
     self.itemLink = newItemLink;
@@ -1959,15 +1965,15 @@ function FancyPanelCharacterInvSlotMixin:SetAllign(allign)
         self.link:SetPoint("TOPLEFT", self, "TOPRIGHT", 5, -4);
         self.link:SetJustifyH("LEFT");
         self.itemModContainer:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", 5, 4);
-        self.upgradeSuggestionButton:ClearAllPoints();
-        self.upgradeSuggestionButton:SetPoint("BOTTOMRIGHT", self, "BOTTOMLEFT", -2, 0);
+        self.durability:ClearAllPoints();
+        self.durability:SetPoint("BOTTOMRIGHT", self, "BOTTOMLEFT", -4, 4);
 
     elseif (allign == "right") then
         self.link:SetPoint("TOPRIGHT", self, "TOPLEFT", -5, -4);
         self.link:SetJustifyH("RIGHT");
         self.itemModContainer:SetPoint("BOTTOMRIGHT", self, "BOTTOMLEFT", -5, 4)
-        self.upgradeSuggestionButton:ClearAllPoints();
-        self.upgradeSuggestionButton:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", 2, 0);
+        self.durability:ClearAllPoints();
+        self.durability:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", 4, 4);
 
     end
 end
@@ -1983,8 +1989,20 @@ function FancyPanelCharacterInvSlotMixin:OnEvent(event, ...)
     self:OnEvent_Private();
 end
 
+local function ClearMacroButton(button)
+    button = button or FancyPanelsMacroButton;
+    button:SetAttribute("type", "macro");
+    button:SetAttribute("macrotext1", "");
+    button:RegisterForClicks();
+    button:ClearAllPoints();
+    button:SetParent(UIParent);
+    button:SetPoint("RIGHT", UIParent, "LEFT", -10, 0)
+end
 
 local function InitMacroButton(parent, menu, item, invSlotId)
+
+    --DevTools_Dump({menu})
+
     local isab = FancyPanelsMacroButton or CreateFrame("Button", "FancyPanelsMacroButton", UIParent, "InsecureActionButtonTemplate");
     isab:SetHighlightAtlas("groupfinder-highlightbar-blue");
     isab:RegisterForClicks("AnyDown");
@@ -2015,9 +2033,11 @@ local function InitMacroButton(parent, menu, item, invSlotId)
 
     isab:SetScript("OnMouseUp", function(_, hwButton)
         menu:Pick(MenuInputContext.MouseButton, hwButton)
-        isab:ClearAllPoints();
-        isab:SetParent(UIParent);
-        isab:SetPoint("RIGHT", UIParent, "LEFT", -10, 0)
+        ClearMacroButton(isab);
+    end)
+
+    isab:SetScript("OnHide", function()
+        ClearMacroButton(isab);
     end)
 end
 
@@ -2035,60 +2055,174 @@ function FancyPanelCharacterInvSlotMixin:OnClick()
         --tooltipScanStringMatch = "^(%d+) Charges$"
     })
 
-    local itemEnhancements = Util.GetContainerItems(nil, addon.TEMP_ITEM_ENHANCEMENTS)
+    local itemTempEnhancements = Util.GetContainerItems(nil, addon.TEMP_ITEM_ENHANCEMENTS)
+    local itemEnhancements = Util.GetContainerItems(nil, addon.PERM_ITEM_ENHANCEMENTS)
 
-    --DevTools_Dump({consumables});
+    local itemsForSlot = GetInventoryItemsForSlot(self.invSlotId, {});
+    local itemDisplayTable = {};
+    --taken from Wrath Blizzard Equipment Manager stuff
+    for location, itemID in next, itemsForSlot do
+        if ( location - self.invSlotId == ITEM_INVENTORY_LOCATION_PLAYER ) then -- Remove the currently equipped item from the list
+            itemsForSlot[location] = nil;
+        else
+            tinsert(itemDisplayTable, location);
+        end
+    end
 
+    table.sort(itemDisplayTable);
 
-    local itemsForSlot = Util.GetContainerItemsForInvSlot(self.equipLoc);
-    if (#itemsForSlot > 0) or (#consumables > 0) then
+    --local itemsForSlot = Util.GetContainerItemsForInvSlot(self.equipLoc);
+    --if (#itemsForSlot > 0) or (#consumables > 0) then
+    if (#itemDisplayTable > 0) or (#consumables > 0) then
 
         MenuUtil.CreateContextMenu(self, function(_, rootDescription)
 
-            if (#itemsForSlot > 0) then
+            --if (#itemsForSlot > 0) then
+            if (#itemDisplayTable > 0) then
                 if type(self.equipLoc) == "table" then
                     rootDescription:CreateTitle(_G[self.equipLoc[1]]);
                 else
                     rootDescription:CreateTitle(_G[self.equipLoc]);
                 end
-                rootDescription:CreateDivider()
+
+                -- local ignoreButton = rootDescription:CreateButton(EQUIPMENT_MANAGER_IGNORE_SLOT)
+                -- ignoreButton:AddInitializer(function(button, desc, menu)
+                --     local icon = button:AttachTexture();
+                --     icon:SetTexture(255352);
+                --     icon:SetPoint("LEFT");
+                --     icon:SetSize(18,18);
+                --     button.fontString:SetPoint("LEFT", icon, "RIGHT", 4, 0);
+                -- end)
+
+                local putInBag = rootDescription:CreateButton(EQUIPMENT_MANAGER_PLACE_IN_BAGS, function()
+                    if ( UnitAffectingCombat("player") and not INVSLOTS_EQUIPABLE_IN_COMBAT[self.invSlotId] ) then
+                        UIErrorsFrame:AddMessage(ERR_CLIENT_LOCKED_OUT, 1.0, 0.1, 0.1, 1.0);
+                        return;
+                    end
+                    local action = EquipmentManager_UnequipItemInSlot(self.invSlotId);
+                    EquipmentManager_RunAction(action);
+                end)
+
+                putInBag:AddInitializer(function(button, desc, menu)
+                    local icon = button:AttachTexture();
+                    icon:SetTexture(255351);
+                    icon:SetPoint("LEFT");
+                    icon:SetSize(18,18);
+                    button.fontString:SetPoint("LEFT", icon, "RIGHT", 4, 0);
+                end)
+
+                rootDescription:CreateDivider();
+                rootDescription:CreateTitle(ITEMS);
             end
 
-            for _, link in ipairs(itemsForSlot) do
-                local itemName = C_Item.GetItemNameByID(link)
+            for k, location in ipairs(itemDisplayTable) do
+                --local id, name, textureName, count, durability, maxDurability, invType, locked, start, duration, enable, setTooltip = EquipmentManager_GetItemInfoByLocation(location);
+                local player, bank, bags, slot, bag = EquipmentManager_UnpackLocation(location);
+                
+                --confirm about bank items with this?
+                if (bag and slot) then
+                    local link = C_Container.GetContainerItemLink(bag, slot);
+                    local itemButton = rootDescription:CreateButton(link, function()
+                        if ( UnitAffectingCombat("player") and not INVSLOTS_EQUIPABLE_IN_COMBAT[self.invSlotId] ) then
+                            UIErrorsFrame:AddMessage(ERR_CLIENT_LOCKED_OUT, 1.0, 0.1, 0.1, 1.0);
+                            return;
+                        end
+                        local action = EquipmentManager_EquipItemByLocation(location, self.invSlotId);
+                        EquipmentManager_RunAction(action);
+                    end)
 
-                local itemButton = rootDescription:CreateButton(link, function()
-                    if ( C_Item.IsEquippableItem(itemName)) then
-
-                        --found a bug using the name, i couldn't equip the mount hyjal rep ring Band of Eternity
-                        --using the itemLink seemed to fix the problem
-                        C_Item.EquipItemByName(link, self.invSlotId);
-                    else
-                        --print("failed is equippable", itemName)
-                    end
-                end)
-
-                if (SavedVars:Get("characterModel.suggestItemUpgrade") == true) and (link == self.suggestedUpgradeLink) then
-                    itemButton:AddInitializer(function(button, desc, menu)
-                        local icon = button:AttachTexture();
-                        icon:SetPoint("LEFT");
-                        icon:SetSize(15, 18);
-                        icon:SetAtlas("loottoast-arrow-green");
-
-                        button.fontString:SetPoint("LEFT", icon, "RIGHT", 4, 0)
+                    itemButton:SetTooltip(function()
+                        GameTooltip:SetBagItem(bag, slot);
                     end)
                 end
+            end
 
-                itemButton:SetTooltip(function()
-                    GameTooltip:SetHyperlink(link);
-                end)
+            -- for _, item in ipairs(itemsForSlot) do
+            --     local itemName = C_Item.GetItemNameByID(item.link)
+
+            --     local itemLocation = ItemLocation:CreateFromBagAndSlot(item.bag, item.slot)
+            --     if (itemLocation:IsValid()) then
+
+            --         local itemButton = rootDescription:CreateButton(item.link, function()
+            --             --if ( C_Item.IsEquippableItem(itemName)) then
+
+            --                 --found a bug using the name, i couldn't equip the mount hyjal rep ring Band of Eternity
+            --                 --using the itemLink seemed to fix the problem
+            --                 --C_Item.EquipItemByName(itemName, self.invSlotId);
+            --                 --C_Item.EquipItemByName(link, self.invSlotId);
+            --             --else
+            --                 --print("failed is equippable", itemName)
+            --             --end
+
+            --             --[[
+            --                 I've copied in the full Wrath EquipmentManager.lua file
+            --                 should now make use of those functions
+            --             ]]
+
+            --             --this is to equip the menu item, copied directly from Blizz for error handling etc
+            --             if ( UnitAffectingCombat("player") and not INVSLOTS_EQUIPABLE_IN_COMBAT[self.invSlotId] ) then
+            --                 UIErrorsFrame:AddMessage(ERR_CLIENT_LOCKED_OUT, 1.0, 0.1, 0.1, 1.0);
+            --                 return;
+            --             end
+            --             local action = EquipmentManager_EquipItemByLocation(itemLocation, self.id);
+            --             EquipmentManager_RunAction(action);
+
+            --         end)
+
+            --         if (SavedVars:Get("characterModel.suggestItemUpgrade") == true) and (item.link == self.suggestedUpgradeLink) then
+            --             itemButton:AddInitializer(function(button, desc, menu)
+            --                 local icon = button:AttachTexture();
+            --                 icon:SetPoint("LEFT");
+            --                 icon:SetSize(15, 18);
+            --                 icon:SetAtlas("loottoast-arrow-green");
+
+            --                 button.fontString:SetPoint("LEFT", icon, "RIGHT", 4, 0)
+            --             end)
+            --         end
+
+            --         itemButton:SetTooltip(function()
+            --             GameTooltip:SetHyperlink(item.link);
+            --         end)
+
+            --     end
+
+            -- end
+
+            if (#itemTempEnhancements > 0) then
+                rootDescription:CreateDivider();
+            end
+
+            if (#itemTempEnhancements > 0) then
+
+                rootDescription:CreateTitle(C_Item.GetItemClassInfo(8));
+
+                for k, enhancement in ipairs(itemTempEnhancements) do
+                    
+                    local enhancementButton = rootDescription:CreateButton(enhancement.link, function()
+                    
+                    end)
+                    -- local enhancementButton = rootDescription:CreateTemplate("FancyPanelsSecureActionButton")
+                    -- enhancementButton:AddInitializer(function(button, desc, menu)
+                    --     button.text:SetText(enhancement.link);
+                    --     button:SetAttribute("macrotext1", "/run print('hellow world)");
+                    -- end)
+
+                    enhancementButton:HookOnEnter(function(button, description)
+                        InitMacroButton(button, description, enhancement, self.invSlotId)
+                    end)
+
+                    enhancementButton:SetResponder(function()
+                        return MenuResponse.CloseAll;
+                    end)
+                end
 
             end
 
             if (#itemEnhancements > 0) then
-                if (#itemsForSlot > 0) then
-                    rootDescription:CreateDivider();
-                end
+                rootDescription:CreateDivider();
+            end
+
+            if (#itemEnhancements > 0) then
 
                 rootDescription:CreateTitle(C_Item.GetItemClassInfo(8));
 
@@ -2110,29 +2244,30 @@ function FancyPanelCharacterInvSlotMixin:OnClick()
             end
 
             if (#consumables > 0) then
-                if (#itemsForSlot > 0) then
-                    rootDescription:CreateDivider();
-                end
+                rootDescription:CreateDivider();
+            end
+
+            if (#consumables > 0) then
 
                 rootDescription:CreateTitle(C_Item.GetItemClassInfo(0));
 
                 --attempt to find charges for items like wizard oil
-                for k, v in ipairs(consumables) do
-                    local charges = Util.ScanTooltip(nil, v.bag, v.slot, "^(%d+) Charges$");
-                    if charges then
-                        v.numCharges = tonumber(charges);
-                    end
-                end
+                -- for k, v in ipairs(consumables) do
+                --     local charges = Util.ScanTooltip(nil, v.bag, v.slot, "^(%d+) Charges$");
+                --     if charges then
+                --         v.numCharges = tonumber(charges);
+                --     end
+                -- end
 
                 --quickly sort for any items with charges, the menu will use the first item and ignore
                 --any matching itemIDs after, so set the lowest charged item first
-                table.sort(consumables, function(a, b)
-                    if a.numCharges and b.numCharges then
-                        return a.numCharges < b.numCharges;
-                    else
-                        return a.link < b.link;
-                    end
-                end)
+                -- table.sort(consumables, function(a, b)
+                --     if a.numCharges and b.numCharges then
+                --         return a.numCharges < b.numCharges;
+                --     else
+                --         return a.link < b.link;
+                --     end
+                -- end)
 
                 --local addedItemIDs = {};
 
@@ -2143,13 +2278,6 @@ function FancyPanelCharacterInvSlotMixin:OnClick()
                         local consumableButton = rootDescription:CreateButton(consumable.link, function()
                         
                         end)
-
-                        -- local function SetTooltip(parent, link)
-                        --     GameTooltip:SetOwner(parent, "ANCHOR_RIGHT");
-                        --     GameTooltip:SetHyperlink(link);
-                        --     GameTooltip:Show();
-                        -- end
-
 
                         --[[
                             Absolutey up yours Blizzard and this menu system
@@ -2171,36 +2299,6 @@ function FancyPanelCharacterInvSlotMixin:OnClick()
                         ]]
                         consumableButton:HookOnEnter(function(button, description, menu)
                             InitMacroButton(button, description, consumable, self.invSlotId)
-
---                             local isab = FancyPanelsMacroButton or CreateFrame("Button", "FancyPanelsMacroButton", UIParent, "InsecureActionButtonTemplate");
---                             isab:SetHighlightAtlas("groupfinder-highlightbar-blue");
---                             isab:RegisterForClicks("AnyDown");
---                             isab:ClearAllPoints();
---                             isab:SetParent(button);
---                             isab:SetPoint("TOPLEFT");
---                             isab:SetPoint("BOTTOMRIGHT");
---                             isab:SetAttribute("type", "macro");
-
---                             local macro = string.format([[
--- /use %d %d
--- /use %d
--- ]], consumable.bag, consumable.slot, self.invSlotId);
-
---                             isab:SetAttribute("macrotext1", macro);
-
---                             isab:SetFrameLevel(button:GetFrameLevel() + 1);
-
---                             isab:SetScript("OnEnter", function()
---                                 SetTooltip(button, consumable.link);
---                             end);
-
---                             isab:SetScript("OnMouseUp", function(_, hwButton)
---                                 description:Pick(MenuInputContext.MouseButton, hwButton)
---                                 isab:ClearAllPoints();
---                                 isab:SetParent(UIParent);
---                                 isab:SetPoint("RIGHT", UIParent, "LEFT", -10, 0)
---                             end)
-
                         end)
                         
                         consumableButton:SetResponder(function()
@@ -2260,8 +2358,8 @@ function FancyPanelCharacterInvSlotMixin:CheckForUpgrades()
         table.insert(itemsForSlot, self.itemLink);
 
         if (#itemsForSlot > 0) then
-            for _, link in ipairs(itemsForSlot) do
-                local stats = GetItemStats(link);
+            for _, item in ipairs(itemsForSlot) do
+                local stats = GetItemStats(item.link);
                 local delta = CompareStats(currentStats, stats);
 
                 -- if delta["ITEM_MOD_INTELLECT_SHORT"] and (delta["ITEM_MOD_INTELLECT_SHORT"] > 0) then
@@ -2269,7 +2367,7 @@ function FancyPanelCharacterInvSlotMixin:CheckForUpgrades()
                 -- end
 
                 table.insert(t, {
-                    link = link,
+                    link = item.link,
                     statDelta = delta,
                 })
             end
@@ -2329,26 +2427,9 @@ function FancyPanelCharacterInvSlotMixin:UpdateVisuals()
     self.qualityBorder:Hide();
     self.itemModContainer:Hide();
     self.iconBorder:Show();
-    self.upgradeSuggestionButton:Hide();
+    self.durability:Hide();
 
     self.itemModContainer.mod1:SetNormalTexture(desatEnchantTexture);
-
-    -- if (self.suggestedUpgradeLink ~= nil) then
-    --     self.upgradeSuggestionButton:Show();
-
-    --     self.upgradeSuggestionButton:SetScript("OnEnter", function(button)
-    --         GameTooltip:SetOwner(button, "ANCHOR_TOPRIGHT");
-    --         GameTooltip:SetHyperlink(self.suggestedUpgradeLink);
-    --         GameTooltip:Show();
-    --     end)
-
-    --     self.upgradeSuggestionButton:SetScript("OnClick", function()
-    --         local itemName = C_Item.GetItemNameByID(self.suggestedUpgradeLink)
-    --         if ( C_Item.IsEquippableItem(itemName)) then
-    --             C_Item.EquipItemByName(itemName, self.invSlotId);
-    --         end
-    --     end)
-    -- end
 
     for i = 1, 4 do
         self.itemModContainer["mod"..i]:Hide();
@@ -2376,6 +2457,20 @@ function FancyPanelCharacterInvSlotMixin:UpdateVisuals()
 
         --print(showEnchant, showSockets)
         self:UpdateItemMods(showEnchant, showSockets);
+
+        if (SavedVars:Get("characterModel.showItemDurability") == true) then
+            local current, maximum = GetInventoryItemDurability(self.invSlotId)
+            if (current and maximum) then
+                local percent = (current/maximum) * 100;
+                if (percent < 100) then
+                    --texture is default x=3 y=34, but we want to keep a 3x3 base for when something is busted
+                    self.durability:SetSize(3, (0.31 * percent) + 3);
+                    local r, g, b = Util.GetColourGradientFromPercent(percent);
+                    self.durability:SetColorTexture(r, g, b)
+                    self.durability:Show();
+                end
+            end
+        end
 
     end
 end

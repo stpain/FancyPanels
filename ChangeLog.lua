@@ -12,6 +12,15 @@ local _, addon = ...;
 
 local ChangeLog = {
     {
+        version = "0.5",
+        log = {
+            "Updated the Equipment Manager to use the Blizz code from Wrath. This should fix issues with suffixes added, 'of the Wolf' and 'of the Bear'.",
+            "Added an item durability icon, can be toggled in the Character config menu.",
+            "Fixed a bug with the consumable menu items. The macro button should now cancel itself when hidden.",
+            "Added level XP ring."
+        },
+    },
+    {
         version = "0.4",
         log = {
             "Added a feral druid option to select cat or bear artwork.",

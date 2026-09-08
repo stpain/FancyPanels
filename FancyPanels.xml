@@ -558,6 +558,29 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
                             <Anchor point="TOPLEFT" x="50" y="-70"/>
                         </Anchors>
                         <Size x="120" y="120"/>
+
+                        <!-- <Frames>
+                            <Cooldown parentKey="restedCooldown" hideCountdownNumbers="true" reverse="true">
+                                <SwipeTexture file="Interface/AddOns/TbdWidgets/Media/Reputation/rep-bar">
+                                    <Color r="1" g="1" b="1" a="1"/>
+                                </SwipeTexture>
+                                <Anchors>
+                                    <Anchor point="TOPLEFT" x="0" y="0"/>
+                                    <Anchor point="BOTTOMRIGHT" x="0" y="0"/>
+                                </Anchors>
+                                <Layers>
+                                    <Layer level="BORDER">
+                                        <Texture parentKey="border" file="Interface/AddOns/TbdWidgets/Media/Reputation/rep-bar">
+                                            <Anchors>
+                                                <Anchor point="TOPLEFT" x="0" y="0"/>
+                                                <Anchor point="BOTTOMRIGHT" x="0" y="0"/>
+                                            </Anchors>
+                                            <TexCoords left="0.3828125" right="0.7578125" top="0.0078125" bottom="0.7578125"/>
+                                        </Texture>
+                                    </Layer>
+                                </Layers>
+                            </Cooldown>
+                        </Frames> -->
                     </Frame>
 
                     <Frame parentKey="outfitList" inherits="TBDListviewTemplate">

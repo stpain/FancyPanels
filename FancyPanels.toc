@@ -1,6 +1,6 @@
 ## Interface: 11509, 20506
 ## Author: TheBoringDad
-## Version: 0.4
+## Version: 0.5
 ## Title: Fancy Panels
 ## Notes: Fancy Panels for your Classic gaming.
 ## SavedVariables: FancyPanelsAccount
@@ -32,6 +32,8 @@ Libs\json.lua
 Libs\LibDeflate\LibDeflate.lua
 Libs\AceComm-3.0\AceComm-3.0.xml
 Libs\LibSerialize\lib.xml
+
+EquipmentManager.lua
 
 ChangeLog.lua
 SavedVariables.lua

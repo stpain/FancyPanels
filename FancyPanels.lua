@@ -288,7 +288,7 @@ end
 ]]
 function FancyPanelsMixin:PLAYER_LEVEL_UP(...)
     local level, healthDelta, powerDelta, numNewTalents, numNewPvpTalentSlots, strengthDelta, agilityDelta, staminaDelta, intellectDelta = ...;
-    self:Character_UpdateLevel();
+    self:Character_UpdateLevel(level);
 end
 
 function FancyPanelsMixin:CHARACTER_POINTS_CHANGED(...)
@@ -522,6 +522,7 @@ function FancyPanelsMixin:SetScripts_Character()
         { key = "showItemLinks", text = "Show Item Links", },
         { key = "showItemQuality", text = "Show Item Quality Borders", },
         { key = "showItemEnchantments", text = "Show Item Enchantments", },
+        { key = "showItemDurability", text = "Show Item Durability", },
         --{ key = "suggestItemUpgrade", text = "Suggest Item Upgrades", tooltipText = "Shows a green upgrade arrow next to an item in the inventory slot context menu." },
     }
 
@@ -762,7 +763,7 @@ function FancyPanelsMixin:UpdateSpecializationInfo()
 
     --we're only getting class data for the player here
     local inspect, isPet = false, false;
-    local playerLevel = UnitLevel("player");
+    --local playerLevel = UnitLevel("player");
     local activeSpecGroup = C_SpecializationInfo.GetActiveSpecGroup(false, false);
 
     local groupData = {
@@ -1161,8 +1162,11 @@ function FancyPanelsMixin:UpdateCharacterModel()
     end)
 end
 
-function FancyPanelsMixin:Character_UpdateLevel()
-    self.character.levelRing.header:SetText(string.format("%s %d %s", LEVEL, UnitLevel("player"), UnitClass("player")));
+function FancyPanelsMixin:Character_UpdateLevel(level)
+    if (level == nil) then
+        level = UnitLevel("player");
+    end
+    self.character.levelRing.header:SetText(string.format("%s %d %s", LEVEL, level, UnitClass("player")));
     --self.character.class:SetText(string.format("%s %d %s", LEVEL, UnitLevel("player"), UnitClass("player")));
 end
 
@@ -1175,15 +1179,41 @@ function FancyPanelsMixin:Character_InitModel()
     local function UpdateXP(ring)
         local playerCurrXP = UnitXP("player");
         local playerMaxXP = UnitXPMax("player");
-        --local exhaustionThreshold = GetXPExhaustion();
+        local exhaustionThreshold = GetXPExhaustion();
         --local exhaustionStateID = GetRestState();
         ring:SetValue(playerCurrXP, playerMaxXP);
+
+        --the rested cooldown frame isn't part of the default widget
+        --needs to be handled manually
+        --CooldownFrame_SetDisplayAsPercentage(ring.restedCooldown, ((playerCurrXP + exhaustionThreshold) / playerMaxXP));
+        --ring.restedCooldown
     end
+
+    local SWIPE = {
+        lowTexCoords = {
+            x = 1 / 256, -- left 0.00390625
+            y = 1 / 128, -- top 0.0078125
+        },
+        highTexCoords =
+        {
+            x = 97 / 256, -- right 0.37890625
+            y = 97 / 128, -- bottom 0.7578125
+        }
+    }
 
     self.character.levelRing.header:SetFontObject("GameFontNormal");
     --self.character.levelRing:SetIcon("ClassHall-Circle-Druid");
     --self.character.levelRing:SetIcon("classicon-druid");
-    self.character.levelRing:SetColour(ccR, ccG, ccB, 0.8)
+
+    self.character.levelRing:SetColour(ccR, ccG, ccB)
+
+    -- self.character.levelRing.cooldown:SetFrameLevel(3)
+    -- self.character.levelRing.restedCooldown:SetFrameLevel(2)
+
+    -- self.character.levelRing.restedCooldown:SetSwipeColor(ccR, ccG, ccB, 1) --rested colour
+    -- self.character.levelRing.restedCooldown:SetRotation(math.rad(180))
+    -- self.character.levelRing.restedCooldown:SetTexCoordRange(SWIPE.lowTexCoords, SWIPE.highTexCoords)
+    
     self.character.levelRing:SetIcon(string.format("ClassTrial-%s-Ring", engClass));
     self.character.levelRing.icon:SetTexCoord(0.18, 0.82, 0.18, 0.82)
     self.character.levelRing:RegisterEvent("PLAYER_XP_UPDATE");
@@ -1405,7 +1435,7 @@ function FancyPanelsMixin:Character_ShowReputations()
 
     repPanel.headerDropDown:SetScript("OnClick", function(button)
         local reps = Util.GetAllCurrentReputations();
-
+        local initialLoad = false;
         if (reps) then
             MenuUtil.CreateContextMenu(button, function(_, root)
                 
@@ -1414,6 +1444,11 @@ function FancyPanelsMixin:Character_ShowReputations()
                         LoadReps(data);
                         repPanel.headerLabel:SetText(header);
                     end)
+
+                    if (initialLoad == false) then
+                        LoadReps(reps);
+                        initialLoad = true;
+                    end
                 end
             end)
         end
@@ -1562,7 +1597,7 @@ function FancyPanelsMixin:Character_InitInvSlots()
 
     local offHandSlot = CreateFrame("Button", nil, self.character.model, "FancyPanelCharacterInvSlotTemplate");
     offHandSlot:SetFrameLevel(self.character.model:GetFrameLevel() + 1);
-    offHandSlot:SetPoint("BOTTOMLEFT", self.character.model, "BOTTOM", 9, 75);
+    offHandSlot:SetPoint("BOTTOMLEFT", self.character.model, "BOTTOM", 14, 75);
     offHandSlot.backgroundIcon:SetTexture(addon.Constants.InventorySlots[18].icon);
     offHandSlot:SetAllign("left");
 
@@ -1580,7 +1615,7 @@ function FancyPanelsMixin:Character_InitInvSlots()
 
     local mainHandSlot = CreateFrame("Button", nil, self.character.model, "FancyPanelCharacterInvSlotTemplate");
     mainHandSlot:SetFrameLevel(self.character.model:GetFrameLevel() + 1);
-    mainHandSlot:SetPoint("BOTTOMRIGHT", self.character.model, "BOTTOM", -9, 75);
+    mainHandSlot:SetPoint("BOTTOMRIGHT", self.character.model, "BOTTOM", -14, 75);
     mainHandSlot.backgroundIcon:SetTexture(addon.Constants.InventorySlots[17].icon);
     mainHandSlot:SetAllign("right");
 

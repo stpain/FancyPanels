@@ -3196,3 +3196,473 @@ addon.TEMP_ITEM_ENHANCEMENTS = {
     20746, -- Lesser Wizard Oil
     34539, -- Righteous Weapon Coating
 }
+
+addon.PERM_ITEM_ENHANCEMENTS = {
+    41611, --Eternal Belt Buckle
+    44149, -- Arcanum of Torment
+    38374, -- Icescale Leg Armor
+    44957, -- Greater Inscription of the Gladiator
+    44133, -- Greater Inscription of the Axe
+    44135, -- Greater Inscription of the Storm
+    44159, -- Arcanum of Burning Mysteries
+    50367, -- Arcanum of Torment
+    41602, -- Brilliant Spellthread
+    50369, -- Arcanum of the Stalwart Protector
+    44936, -- Titanium Plating
+    41976, -- Titanium Weapon Chain
+    44493, -- Scroll of Enchant Weapon - Berserking
+    44465, -- Scroll of Enchant Chest - Powerful Stats
+    50368, -- Arcanum of Burning Mysteries
+    41604, -- Sapphire Spellthread
+    38373, -- Frosthide Leg Armor
+    50335, -- Greater Inscription of the Axe
+    44150, -- Arcanum of the Stalwart Protector
+    44069, -- Arcanum of Triumph
+    41167, -- Heartseeker Scope
+    38925, -- Scroll of Enchant Weapon - Mongoose
+    38873, -- Scroll of Enchant Weapon - Crusader
+    41118, -- Nitro Boosts
+    44963, -- Earthen Leg Armor
+    38979, -- Scroll of Enchant Gloves - Exceptional Spellpower
+    44467, -- Scroll of Enchant Weapon - Mighty Spellpower
+    38865, -- Scroll of Enchant Chest - Greater Stats
+    44815, -- Scroll of Enchant Bracers - Greater Assault
+    50338, -- Greater Inscription of the Storm
+    38986, -- Scroll of Enchant Boots - Icewalker
+    44067, -- Inscription of Triumph
+    41111, -- Flexweave Underlay
+    44879, -- Arcanum of Torment
+    38837, -- Scroll of Enchant Boots - Minor Speed
+    44136, -- Greater Inscription of the Pinnacle
+    44871, -- Greater Inscription of the Axe
+    38877, -- Scroll of Enchant Weapon - Spellpower
+    39006, -- Scroll of Enchant Boots - Tuskarr's Vitality
+    44152, -- Arcanum of Blissful Mending
+    38838, -- Scroll of Enchant Weapon - Fiery Weapon
+    39002, -- Scroll of Enchant Chest - Greater Defense
+    39003, -- Scroll of Enchant Cloak - Greater Speed
+    44457, -- Scroll of Enchant Cloak - Major Agility
+    4407, -- Accurate Scope
+    44075, -- Arcanum of Dominance
+    29535, -- Nethercobra Leg Armor
+    44884, -- Arcanum of the Frosty Soul
+    46098, -- Scroll of Enchant Weapon - Blood Draining
+    38928, -- Scroll of Enchant Chest - Major Spirit
+    38880, -- Scroll of Enchant Weapon - Agility
+    43987, -- Scroll of Enchant Weapon - Black Magic
+    44458, -- Scroll of Enchant Gloves - Crusher
+    44874, -- Greater Inscription of the Storm
+    11642, -- Lesser Arcanum of Constitution
+    44068, -- Inscription of Dominance
+    44469, -- Scroll of Enchant Boots - Greater Assault
+    44470, -- Scroll of Enchant Bracer - Superior Spellpower
+    28885, -- Inscription of Vengeance
+    38376, -- Heavy Borean Armor Kit
+    38918, -- Scroll of Enchant Weapon - Major Intellect
+    38922, -- Scroll of Enchant 2H Weapon - Major Agility
+    46026, -- Scroll of Enchant Weapon - Blade Ward
+    50337, -- Greater Inscription of the Pinnacle
+    28909, -- Greater Inscription of the Orb
+    38857, -- Scroll of Enchant Gloves - Greater Strength
+    38947, -- Scroll of Enchant Weapon - Greater Agility
+    44134, -- Greater Inscription of the Crag
+    50336, -- Greater Inscription of the Crag
+    23549, -- Fortitude of the Scourge
+    38852, -- Scroll of Enchant Bracer - Greater Intellect
+    41093, -- Hyperspeed Accelerators
+    5421, -- Fiery Blaze Enchantment
+    10546, -- Deadly Scope
+    38854, -- Scroll of Enchant Bracer - Superior Strength
+    44455, -- Scroll of Enchant Shield - Greater Intellect
+    44463, -- Scroll of Enchant 2H Weapon - Massacre
+    29193, -- Arcanum of the Gladiator
+    29486, -- Frost Armor Kit
+    29534, -- Clefthide Leg Armor
+    38998, -- Scroll of Enchant Weapon - Deathfrost
+    50370, -- Arcanum of Blissful Mending
+    18169, -- Flame Mantle of the Dawn
+    19971, -- High Test Eternium Fishing Line
+    34836, -- Spun Truesilver Fishing Line
+    38863, -- Scroll of Enchant Boots - Greater Agility
+    38878, -- Scroll of Enchant Weapon - Healing Power
+    38890, -- Scroll of Enchant Gloves - Superior Agility
+    38940, -- Scroll of Enchant Cloak - Greater Agility
+    38993, -- Scroll of Enchant Cloak - Shadow Armor
+    44562, -- Pattern: Fur Lining - Nature Resist
+    4406, -- Standard Scope
+    18182, -- Chromatic Mantle of the Dawn
+    30845, -- Arcanum of Chromatic Warding
+    38800, -- Scroll of Enchant Gloves - Mining
+    38849, -- Scroll of Enchant Bracer - Greater Stamina
+    38871, -- Scroll of Enchant Weapon - Lifestealing
+    38938, -- Scroll of Enchant Bracer - Assault
+    38973, -- Scroll of Enchant Cloak - Spell Piercing
+    39005, -- Scroll of Enchant Chest - Super Health
+    41146, -- Sun Scope
+    29483, -- Shadow Armor Kit
+    38372, -- Nerubian Leg Armor
+    38787, -- Scroll of Enchant Shield - Minor Stamina
+    38824, -- Scroll of Enchant Chest - Lesser Stats
+    38825, -- Scroll of Enchant Cloak - Greater Defense
+    38831, -- Scroll of Enchant Gloves - Advanced Mining
+    38835, -- Scroll of Enchant Cloak - Lesser Agility
+    38851, -- Scroll of Enchant Gloves - Minor Haste
+    38896, -- Scroll of Enchant 2H Weapon - Agility
+    38906, -- Scroll of Enchant Shield - Shield Block
+    38911, -- Scroll of Enchant Chest - Exceptional Health
+    44449, -- Scroll of Enchant Boots - Assault
+    44877, -- Arcanum of Burning Mysteries
+    44878, -- Arcanum of the Stalwart Protector
+    44947, -- Scroll of Enchant Bracer - Major Stamina
+    45056, -- Scroll of Enchant Staff - Greater Spellpower
+    2304, -- Light Armor Kit
+    15564, -- Rugged Armor Kit
+    19787, -- Presence of Sight
+    29192, -- Arcanum of Ferocity
+    29536, -- Nethercleft Leg Armor
+    37603, -- Scroll of Enchant Boots - Dexterity
+    38766, -- Scroll of Enchant Chest - Minor Health
+    38912, -- Scroll of Enchant Chest - Exceptional Mana
+    38921, -- Scroll of Enchant Weapon - Major Spellpower
+    38949, -- Scroll of Enchant Shield - Resilience
+    38981, -- Scroll of Enchant 2H Weapon - Scourgebane
+    44872, -- Greater Inscription of the Crag
+    18329, -- Arcanum of Rapidity
+    24274, -- Runic Spellthread
+    28912, -- Greater Inscription of the Oracle
+    35731, -- Greater Inscription of the Orb
+    38806, -- Scroll of Enchant Cloak - Defense
+    38855, -- Scroll of Enchant Bracer - Superior Stamina
+    38859, -- Scroll of Enchant Cloak - Superior Defense
+    38869, -- Scroll of Enchant 2H Weapon - Superior Impact
+    38944, -- Scroll of Enchant Boots - Boar's Speed
+    38948, -- Scroll of Enchant Weapon - Executioner
+    38954, -- Scroll of Enchant Shield - Defense
+    38967, -- Scroll of Enchant Gloves - Major Agility
+    38976, -- Scroll of Enchant Boots - Superior Agility
+    38990, -- Scroll of Enchant Gloves - Armsman
+    38999, -- Scroll of Enchant Chest - Defense
+    41091, -- Hand-Mounted Pyro Rocket
+    41603, -- Azure Spellthread
+    43097, -- Fur Lining - Attack Power
+    44131, -- Lesser Inscription of the Axe
+    44559, -- Pattern: Fur Lining - Fire Resist
+    50372, -- Arcanum of the Savage Gladiator
+    10548, -- Sniper Scope
+    19788, -- Hoodoo Hex
+    29190, -- Arcanum of Renewal
+    29191, -- Arcanum of Power
+    38371, -- Jormungar Leg Armor
+    38844, -- Scroll of Enchant Boots - Agility
+    38862, -- Scroll of Enchant Boots - Greater Stamina
+    38864, -- Scroll of Enchant Boots - Spirit
+    38897, -- Scroll of Enchant Bracer - Brawn
+    38953, -- Scroll of Enchant Gloves - Precision
+    44875, -- Arcanum of the Savage Gladiator
+    4265, -- Heavy Armor Kit
+    6043, -- Iron Counterweight
+    11649, -- Lesser Arcanum of Voracity
+    20077, -- Zandalar Signet of Might
+    23765, -- Khorium Scope
+    23766, -- Stabilized Eternium Scope
+    28910, -- Greater Inscription of the Blade
+    29199, -- Arcanum of Shadow Warding
+    34207, -- Glove Reinforcements
+    38378, -- Wyrmscale Leg Armor
+    38866, -- Scroll of Enchant Chest - Major Health
+    38898, -- Scroll of Enchant Bracer - Stats
+    38945, -- Scroll of Enchant Shield - Major Stamina
+    38975, -- Scroll of Enchant Chest - Exceptional Resilience
+    2313, -- Medium Armor Kit
+    8173, -- Thick Armor Kit
+    11647, -- Lesser Arcanum of Voracity
+    28888, -- Greater Inscription of Vengeance
+    38377, -- Dragonscale Leg Armor
+    38804, -- Scroll of Enchant Chest - Minor Stats
+    38828, -- Scroll of Enchant Shield - Stamina
+    38833, -- Scroll of Enchant Chest - Superior Health
+    38881, -- Scroll of Enchant Bracer - Mana Regeneration
+    38910, -- Scroll of Enchant Boots - Surefooted
+    38913, -- Scroll of Enchant Chest - Exceptional Stats
+    38960, -- Scroll of Enchant Gloves - Gatherer
+    38972, -- Scroll of Enchant Weapon - Lifeward
+    38989, -- Scroll of Enchant Chest - Super Stats
+    39001, -- Scroll of Enchant Cloak - Mighty Armor
+    42500, -- Titanium Shield Spike
+    44137, -- Arcanum of the Frosty Soul
+    44876, -- Arcanum of Blissful Mending
+    44946, -- Scroll of Enchant Weapon - Titanguard
+    23548, -- Might of the Scourge
+    38821, -- Scroll of Enchant Weapon - Striking
+    38840, -- Scroll of Enchant Weapon - Demonslaying
+    38847, -- Scroll of Enchant Chest - Stats
+    38856, -- Scroll of Enchant Gloves - Greater Agility
+    38884, -- Scroll of Enchant Weapon - Mighty Intellect
+    38930, -- Scroll of Enchant Chest - Major Resilience
+    38933, -- Scroll of Enchant Gloves - Major Strength
+    38934, -- Scroll of Enchant Gloves - Assault
+    38937, -- Scroll of Enchant Bracer - Major Intellect
+    38943, -- Scroll of Enchant Boots - Cat's Swiftness
+    38962, -- Scroll of Enchant Chest - Greater Mana Restoration
+    38966, -- Scroll of Enchant Boots - Greater Fortitude
+    38971, -- Scroll of Enchant Bracers - Striking
+    38978, -- Scroll of Enchant Cloak - Titanweave
+    40776, -- Personal Electromagnetic Pulse Generator
+    44130, -- Lesser Inscription of the Crag
+    44560, -- Pattern: Fur Lining - Frost Resist
+    44561, -- Pattern: Fur Lining - Shadow Resist
+    44883, -- Arcanum of Toxic Warding
+    7969, -- Mithril Spurs
+    18331, -- Arcanum of Protection
+    19789, -- Prophetic Aura
+    22635, -- Savage Guard
+    23545, -- Power of the Scourge
+    23547, -- Resilience of the Scourge
+    24273, -- Mystic Spellthread
+    24276, -- Golden Spellthread
+    29186, -- Arcanum of the Defender
+    29197, -- Arcanum of Fire Warding
+    38777, -- Scroll of Enchant Bracer - Minor Agility
+    38779, -- Scroll of Enchant Weapon - Minor Beastslayer
+    38826, -- Scroll of Enchant Cloak - Resistance
+    38836, -- Scroll of Enchant Gloves - Strength
+    38885, -- Scroll of Enchant Gloves - Threat
+    38935, -- Scroll of Enchant Gloves - Major Spellpower
+    38963, -- Scroll of Enchant Weapon - Exceptional Spirit
+    38991, -- Scroll of Enchant Weapon - Exceptional Spellpower
+    38992, -- Scroll of Enchant 2H Weapon - Greater Savagery
+    38997, -- Scroll of Enchant Bracers - Greater Spellpower
+    39004, -- Scroll of Enchant Cloak - Wisdom
+    44129, -- Lesser Inscription of the Storm
+    44139, -- Arcanum of the Fleeing Shadow
+    44702, -- Arcanum of the Savage Gladiator
+    11622, -- Lesser Arcanum of Rumination
+    11645, -- Lesser Arcanum of Voracity
+    18330, -- Arcanum of Focus
+    19783, -- Syncretist's Sigil
+    19786, -- Vodouisant's Vigilant Embrace
+    23530, -- Felsteel Shield Spike
+    23764, -- Adamantite Scope
+    24275, -- Silver Spellthread
+    28889, -- Greater Inscription of Warding
+    28904, -- Inscription of the Oracle
+    28911, -- Greater Inscription of the Knight
+    29189, -- Arcanum of Renewal
+    29533, -- Cobrahide Leg Armor
+    35728, -- Greater Inscription of the Blade
+    38375, -- Borean Armor Kit
+    38679, -- Scroll of Enchant Bracer - Minor Health
+    38771, -- Scroll of Enchant Bracer - Minor Stamina
+    38783, -- Scroll of Enchant Bracer - Lesser Spirit
+    38797, -- Scroll of Enchant Bracer - Lesser Strength
+    38803, -- Scroll of Enchant Bracer - Lesser Intellect
+    38809, -- Scroll of Enchant Bracer - Spirit
+    38812, -- Scroll of Enchant Bracer - Stamina
+    38832, -- Scroll of Enchant Bracer - Greater Spirit
+    38860, -- Scroll of Enchant Shield - Vitality
+    38874, -- Scroll of Enchant 2H Weapon - Major Spirit
+    38882, -- Scroll of Enchant Bracer - Healing Power
+    38894, -- Scroll of Enchant Cloak - Subtlety
+    38903, -- Scroll of Enchant Bracer - Spellpower
+    38908, -- Scroll of Enchant Boots - Vitality
+    38915, -- Scroll of Enchant Cloak - Major Resistance
+    38916, -- Scroll of Enchant Weapon - Major Spirit
+    38956, -- Scroll of Enchant Cloak - Superior Nature Resistance
+    38961, -- Scroll of Enchant Boots - Greater Spirit
+    38964, -- Scroll of Enchant Gloves - Greater Assault
+    38969, -- Scroll of Enchant Cloak - Superior Fire Resistance
+    38984, -- Scroll of Enchant Bracer - Expertise
+    38995, -- Scroll of Enchant Weapon - Exceptional Agility
+    44141, -- Arcanum of the Flame's Soul
+    44456, -- Scroll of Enchant Cloak - Speed
+    44497, -- Scroll of Enchant Weapon - Accuracy
+    44739, -- Diamond-cut Refractor Scope
+    45060, -- Scroll of Enchant Staff - Spellpower
+    7967, -- Mithril Shield Spike
+    18172, -- Nature Mantle of the Dawn
+    19784, -- Death's Embrace
+    25652, -- Magister's Armor Kit
+    28882, -- Inscription of Warding
+    28887, -- Greater Inscription of Faith
+    28907, -- Inscription of the Blade
+    29194, -- Arcanum of Nature Warding
+    34330, -- Heavy Knothide Armor Kit
+    37312, -- Carrot on a Stick
+    38769, -- Scroll of Enchant Chest - Minor Mana
+    38778, -- Scroll of Enchant Bracer - Minor Strength
+    38788, -- Scroll of Enchant 2H Weapon - Lesser Spirit
+    38789, -- Scroll of Enchant Cloak - Minor Agility
+    38820, -- Scroll of Enchant Shield - Lesser Block
+    38827, -- Scroll of Enchant Gloves - Agility
+    38829, -- Scroll of Enchant Bracer - Intellect
+    38830, -- Scroll of Enchant Boots - Stamina
+    38861, -- Scroll of Enchant Shield - Greater Stamina
+    38870, -- Scroll of Enchant Weapon - Superior Striking
+    38875, -- Scroll of Enchant 2H Weapon - Major Intellect
+    38883, -- Scroll of Enchant Weapon - Mighty Spirit
+    38887, -- Scroll of Enchant Gloves - Frost Power
+    38895, -- Scroll of Enchant Cloak - Dodge
+    38907, -- Scroll of Enchant Shield - Resistance
+    38914, -- Scroll of Enchant Cloak - Major Armor
+    38919, -- Scroll of Enchant 2H Weapon - Savagery
+    38920, -- Scroll of Enchant Weapon - Potency
+    38926, -- Scroll of Enchant Weapon - Spellsurge
+    38929, -- Scroll of Enchant Chest - Restore Mana Prime
+    38939, -- Scroll of Enchant Cloak - Spell Penetration
+    38942, -- Scroll of Enchant Cloak - Greater Shadow Resistance
+    38955, -- Scroll of Enchant Chest - Mighty Health
+    38957, -- Scroll of Enchant Weapon - Exceptional Striking
+    38968, -- Scroll of Enchant Bracers - Exceptional Intellect
+    38988, -- Scroll of Enchant Weapon - Giant Slayer
+    38996, -- Scroll of Enchant Bracers - Major Healing
+    39000, -- Scroll of Enchant Cloak - Steelweave
+    44138, -- Arcanum of Toxic Warding
+    44453, -- Scroll of Enchant Weapon - Greater Potency
+    44882, -- Arcanum of the Fleeing Shadow
+    45628, -- Scroll of Enchant Boots - Lesser Accuracy
+    4405, -- Crude Scope
+    11646, -- Lesser Arcanum of Voracity
+    18173, -- Shadow Mantle of the Dawn
+    18283, -- Biznicks 247x128 Accurascope
+    20076, -- Zandalar Signet of Mojo
+    25650, -- Knothide Armor Kit
+    28908, -- Inscription of the Knight
+    35730, -- Greater Inscription of the Oracle
+    38770, -- Scroll of Enchant Cloak - Minor Resistance
+    38772, -- Scroll of Enchant 2H Weapon - Minor Impact
+    38786, -- Scroll of Enchant Boots - Minor Agility
+    38790, -- Scroll of Enchant Cloak - Lesser Protection
+    38799, -- Scroll of Enchant Chest - Mana
+    38801, -- Scroll of Enchant Gloves - Herbalism
+    38817, -- Scroll of Enchant Bracer - Strength
+    38823, -- Scroll of Enchant Gloves - Skinning
+    38876, -- Scroll of Enchant Weapon - Winter's Might
+    38888, -- Scroll of Enchant Gloves - Fire Power
+    38889, -- Scroll of Enchant Gloves - Healing Power
+    38892, -- Scroll of Enchant Cloak - Greater Nature Resistance
+    38899, -- Scroll of Enchant Bracer - Major Defense
+    38902, -- Scroll of Enchant Bracer - Fortitude
+    38904, -- Scroll of Enchant Shield - Tough Shield
+    38909, -- Scroll of Enchant Boots - Fortitude
+    38924, -- Scroll of Enchant Weapon - Soulfrost
+    38927, -- Scroll of Enchant Weapon - Battlemaster
+    38931, -- Scroll of Enchant Gloves - Blasting
+    38936, -- Scroll of Enchant Gloves - Major Healing
+    38951, -- Scroll of Enchant Gloves - Expertise
+    38959, -- Scroll of Enchant Cloak - Superior Agility
+    38965, -- Scroll of Enchant Weapon - Icebreaker
+    44132, -- Lesser Inscription of the Pinnacle
+    44563, -- Pattern: Fur Lining - Arcane Resist
+    50373, -- Arcanum of the Savage Gladiator
+    6041, -- Steel Weapon Chain
+    6042, -- Iron Shield Spike
+    11643, -- Lesser Arcanum of Tenacity
+    20078, -- Zandalar Signet of Serenity
+    22638, -- Shadow Guard
+    28878, -- Inscription of Faith
+    28886, -- Greater Inscription of Discipline
+    28903, -- Inscription of the Orb
+    29187, -- Inscription of Endurance
+    29195, -- Arcanum of Arcane Warding
+    29196, -- Arcanum of Fire Warding
+    29485, -- Flame Armor Kit
+    29868, -- QAEnchant Gloves +26 Attack Power
+    30846, -- Arcanum of the Outcast
+    38767, -- Scroll of Enchant Chest - Minor Absorption
+    38773, -- Scroll of Enchant Chest - Lesser Health
+    38781, -- Scroll of Enchant 2H Weapon - Lesser Intellect
+    38782, -- Scroll of Enchant Chest - Health
+    38785, -- Scroll of Enchant Boots - Minor Stamina
+    38791, -- Scroll of Enchant Shield - Lesser Protection
+    38794, -- Scroll of Enchant Weapon - Lesser Striking
+    38795, -- Scroll of Enchant Cloak - Lesser Shadow Resistance
+    38798, -- Scroll of Enchant Chest - Lesser Absorption
+    38802, -- Scroll of Enchant Gloves - Fishing
+    38805, -- Scroll of Enchant Shield - Lesser Stamina
+    38808, -- Scroll of Enchant Chest - Greater Health
+    38810, -- Scroll of Enchant Boots - Lesser Stamina
+    38811, -- Scroll of Enchant Bracer - Lesser Deflection
+    38813, -- Scroll of Enchant Weapon - Lesser Beastslayer
+    38814, -- Scroll of Enchant Weapon - Lesser Elemental Slayer
+    38815, -- Scroll of Enchant Cloak - Fire Resistance
+    38834, -- Scroll of Enchant Gloves - Advanced Herbalism
+    38845, -- Scroll of Enchant 2H Weapon - Greater Impact
+    38848, -- Scroll of Enchant Weapon - Greater Striking
+    38850, -- Scroll of Enchant Gloves - Riding Skill
+    38858, -- Scroll of Enchant Cloak - Greater Resistance
+    38868, -- Scroll of Enchant Weapon - Icy Chill
+    38879, -- Scroll of Enchant Weapon - Strength
+    38891, -- Scroll of Enchant Cloak - Greater Fire Resistance
+    38893, -- Scroll of Enchant Cloak - Stealth
+    38901, -- Scroll of Enchant Bracer - Restore Mana Prime
+    38905, -- Scroll of Enchant Shield - Intellect
+    38917, -- Scroll of Enchant Weapon - Major Striking
+    38932, -- Scroll of Enchant Gloves - Precise Strikes
+    38941, -- Scroll of Enchant Cloak - Greater Arcane Resistance
+    38946, -- Scroll of Enchant Weapon - Major Healing
+    38950, -- Scroll of Enchant Cloak - Superior Frost Resistance
+    38977, -- Scroll of Enchant Cloak - Superior Shadow Resistance
+    38985, -- Scroll of Enchant Gloves - Greater Blasting
+    41601, -- Shining Spellthread
+    44126, -- zzzOLDGreater Inscription of Template - PH
+    44140, -- Arcanum of the Eclipsed Moon
+    44701, -- Arcanum of the Savage Gladiator
+    44881, -- Arcanum of the Eclipsed Moon
+    50816, -- Scroll of Enchant Gloves - Angler
+    11644, -- Lesser Arcanum of Resilience
+    11648, -- Lesser Arcanum of Voracity
+    18170, -- Frost Mantle of the Dawn
+    18171, -- Arcane Mantle of the Dawn
+    19782, -- Presence of Might
+    19785, -- Falcon's Call
+    19790, -- Animist's Caress
+    22636, -- Ice Guard
+    25651, -- Vindicator's Armor Kit
+    29198, -- Arcanum of Frost Warding
+    29487, -- Nature Armor Kit
+    29488, -- Arcane Armor Kit
+    38768, -- Scroll of Enchant Bracer - Minor Deflection
+    38774, -- Scroll of Enchant Bracer - Minor Spirit
+    38775, -- Scroll of Enchant Cloak - Minor Protection
+    38776, -- Scroll of Enchant Chest - Lesser Mana
+    38780, -- Scroll of Enchant Weapon - Minor Striking
+    38784, -- Scroll of Enchant Cloak - Lesser Fire Resistance
+    38792, -- Scroll of Enchant Shield - Lesser Spirit
+    38793, -- Scroll of Enchant Bracer - Lesser Stamina
+    38796, -- Scroll of Enchant 2H Weapon - Lesser Impact
+    38807, -- Scroll of Enchant Boots - Lesser Agility
+    38816, -- Scroll of Enchant Shield - Spirit
+    38818, -- Scroll of Enchant Chest - Greater Mana
+    38819, -- Scroll of Enchant Boots - Lesser Spirit
+    38822, -- Scroll of Enchant 2H Weapon - Impact
+    38839, -- Scroll of Enchant Shield - Greater Spirit
+    38841, -- Scroll of Enchant Chest - Superior Mana
+    38842, -- Scroll of Enchant Bracer - Deflection
+    38843, -- Scroll of Enchant Shield - Frost Resistance
+    38846, -- Scroll of Enchant Bracer - Greater Strength
+    38853, -- Scroll of Enchant Bracer - Superior Spirit
+    38867, -- Scroll of Enchant Chest - Major Mana
+    38872, -- Scroll of Enchant Weapon - Unholy Weapon
+    38886, -- Scroll of Enchant Gloves - Shadow Power
+    38900, -- Scroll of Enchant Bracer - Superior Healing
+    38923, -- Scroll of Enchant Weapon - Sunfire
+    38970, -- Scroll of Enchant Gloves - Exceptional Healing
+    38974, -- Scroll of Enchant Boots - Greater Vitality
+    38980, -- Scroll of Enchant Bracers - Major Spirit
+    38982, -- Scroll of Enchant Cloak - Superior Arcane Resistance
+    38983, -- Scroll of Enchant Shield - Mighty Stamina
+    38987, -- Scroll of Enchant Bracers - Greater Stats
+    38994, -- Scroll of Enchant Weapon - Exceptional Healing
+    39300, -- Spring Loaded Cloak Expander
+    44466, -- Scroll of Enchant Weapon - Superior Potency
+    44873, -- Greater Inscription of the Pinnacle
+    44880, -- Arcanum of the Flame's Soul
+    12645, -- Thorium Shield Spike
+    18251, -- Core Armor Kit
+    28881, -- Inscription of Discipline
+    33185, -- Adamantite Weapon Chain
+    35729, -- Greater Inscription of the Knight
+    38958, -- Scroll of Enchant Weapon - Exceptional Intellect
+    44124, -- zzzOLD Arcanum of Reputation Template - PH
+    44125, -- zzzOLDLesser Inscription of Template - PH
+}

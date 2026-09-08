@@ -76,6 +76,23 @@ function Util.tableContains(tbl, val)
     return false;
 end
 
+function Util.GetColourGradientFromPercent(percent, reverse)
+
+    if reverse then
+        local g = (percent > 50 and 1 - 2 * (percent - 50) / 100.0 or 1.0);
+        local r = (percent > 50 and 1.0 or 2 * percent / 100.0);
+        local b = 0.0;
+    
+        return r, g, b;
+    else
+        local r = (percent > 50 and 1 - 2 * (percent - 50) / 100.0 or 1.0);
+        local g = (percent > 50 and 1.0 or 2 * percent / 100.0);
+        local b = 0.0;
+    
+        return r, g, b;
+    end
+end
+
 function Util.GetSpecDesc(classID, tabID)
 
     if (classID == 11) and (tabID == 2) then
@@ -613,7 +630,11 @@ function Util.GetContainerItemsForInvSlot(equipLoc, invType, invSlotId)
             if link then
                 local _, _, _, _equipLoc, _, class = C_Item.GetItemInfoInstant(link);
                 if tContains(equipLoc, _equipLoc) then
-                    table.insert(ret, link);
+                    table.insert(ret, {
+                        link = link,
+                        bag = bag,
+                        slot = slot,
+                    });
                 end
             end
         end

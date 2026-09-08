@@ -533,6 +533,10 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
                         <Anchor point="BOTTOMRIGHT" x="-3" y="3"/>
                     </Anchors>
                 </Texture>
+                <Texture parentKey="durability" alpha="0.7">
+                    <Size x="3" y="34"/>
+                    <Color color="GREEN_FONT_COLOR"/>
+                </Texture>
             </Layer>
             <!-- <Layer level="ARTWORK" textureSubLevel="2">
                 <Texture parentKey="qualityMask" atlas="loottoast-itemborder-blue" alpha="0.9" hidden="true">
@@ -579,10 +583,6 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
             </AnimationGroup>
         </Animations>
         <Frames>
-            <Button parentKey="upgradeSuggestionButton" hidden="true">
-                <Size x="15" y="18"/>
-                <NormalTexture atlas="loottoast-arrow-green"/>
-            </Button>
 
             <Frame parentKey="itemModContainer"> <!-- green 237019 blue 237020 purple 237018-->
                 <Size y="18"/>
@@ -680,9 +680,10 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     </Frame>
 
     <Button name="FancyPanelsSecureActionButton" enableMouse="true" inherits="InsecureActionButtonTemplate" registerForClicks="AnyDown,AnyUp" virtual="true">
-        <!-- <Attributes>
-            <Attribute name="type1" value="macro"/>
-        </Attributes> -->
+        <Attributes>
+            <Attribute name="type" value="macro"/>
+        </Attributes>
+        <Size x="200" y="24"/>
         <Layers>
             <Layer level="OVERLAY">
                 <FontString parentKey="text" inherits="GameFontNormal" justifyH="LEFT">
